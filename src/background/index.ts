@@ -22,6 +22,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'take_screenshot') {
         console.log('Taking screenshot message recieved2', message);
         // Take a screenshot of the screen
+
+        
+        //@ts-ignore
         chrome.tabs.captureVisibleTab( null, { format: 'png' }, function(screenshotUrl) {
             console.log("screenshotUrl",screenshotUrl)
             // Send the screenshot URL back to the background script
