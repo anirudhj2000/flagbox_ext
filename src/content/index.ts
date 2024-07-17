@@ -9,19 +9,19 @@ let endY = 0;
 let show = false;
 
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
-  // Handle the received message
-  const box = document.createElement("div");
-  box.style.position = "fixed";
-  box.style.left = `0`;
-  box.style.top = `0`;
-  box.style.width = `100vw`;
-  box.style.height = `100vh`;
-  box.style.border = "1px dashed red";
-  box.style.zIndex = "9995";
-  box.style.backgroundColor = "transparent";
-  box.style.cursor = "crosshair";
+  // // Handle the received message
+  // const box = document.createElement("div");
+  // box.style.position = "fixed";
+  // box.style.left = `0`;
+  // box.style.top = `0`;
+  // box.style.width = `100vw`;
+  // box.style.height = `100vh`;
+  // box.style.border = "1px dashed red";
+  // box.style.zIndex = "9995";
+  // box.style.backgroundColor = "transparent";
+  // box.style.cursor = "crosshair";
 
-  document.body.appendChild(box);
+  // document.body.appendChild(box);
 
   // Insert the fetched HTML into the document
   // const buttonGroup = document.createElement("div");
@@ -51,8 +51,12 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   iframe.style.width = "100vw";
   iframe.style.height = "100vh";
   iframe.style.border = "none";
-  iframe.style.zIndex = "99999";
+  iframe.style.border = "1px dashed #fa7d7d";
+  iframe.style.zIndex = "9999999";
   iframe.style.backgroundColor = "transparent";
+  iframe.style.cursor = "crosshair";
+  iframe.style.overflow = "hidden";
+  iframe.scrolling = "no";
 
   document.body.appendChild(iframe);
   // let rollout = document.getElementById("rollout");

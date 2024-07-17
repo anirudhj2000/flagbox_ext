@@ -12,7 +12,16 @@
       </div>
   </div> */
 
-  .container {
+  body{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Roboto', sans-serif;
+    background-color: transparent;
+  }
+
+
+  .containercomp {
     position: absolute;
     right:16px;
     bottom: 0;

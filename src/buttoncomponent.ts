@@ -46,7 +46,7 @@ function loadButtonComponent() {
       box.style.top = startY + "px";
       box.style.width = endX - startX + "px";
       box.style.height = endY - startY + "px";
-      box.style.border = "1px dashed yellow";
+      box.style.border = "1px dashed #cc6262";
       box.style.zIndex = "1202";
       box.style.backgroundColor = "transparent";
       document.body.appendChild(box);
@@ -54,33 +54,40 @@ function loadButtonComponent() {
     }
   }
 
-  document.getElementById("capture-image")?.addEventListener("click", () => {
-    console.log("capture-image", rollout);
+  const captureImage = document.getElementById("capture-image");
 
-    chrome.runtime.sendMessage(
-      {
-        type: "take_screenshot",
-        x: 0,
-        y: 0,
-        width: window.innerWidth,
-        height: window.innerHeight,
-      },
-      function (response) {
-        console.log("called");
-        console.log("pricess images called", response);
-        if (response && response.response) {
-          confirm("Image Captured");
-          processImage(
-            response.response,
-            0,
-            0,
-            window.innerWidth,
-            window.innerHeight
-          );
+  captureImage?.addEventListener(
+    "click",
+    function handleCaptureClik(e: any) {
+      captureImage.removeEventListener("click", handleCaptureClik);
+      console.log("capture-image", rollout);
+      e.preventDefault();
+
+      chrome.runtime.sendMessage(
+        {
+          type: "take_screenshot",
+          x: 0,
+          y: 0,
+          width: window.innerWidth,
+          height: window.innerHeight,
+        },
+        function (response) {
+          console.log("called");
+          console.log("pricess images called", response);
+          if (response && response.response) {
+            processImage(
+              response.response,
+              0,
+              0,
+              window.innerWidth,
+              window.innerHeight
+            );
+          }
         }
-      }
-    );
-  });
+      );
+    },
+    { once: true }
+  );
 }
 
 loadButtonComponent();
