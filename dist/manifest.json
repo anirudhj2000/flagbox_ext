@@ -11,7 +11,14 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["contentScript.js"]
+      "js": ["contentScript.js"],
+      "css": ["index.css"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["buttoncomponent.html", "index.css"],
+      "matches": ["<all_urls>"]
     }
   ],
   "permissions": [
@@ -21,6 +28,7 @@
     "storage",
     "<all_urls>",
     "webRequest",
-    "webRequestBlocking"
+    "webRequestBlocking",
+    "scripting"
   ]
 }
