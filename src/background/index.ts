@@ -1,44 +1,65 @@
 // content script (content.ts)
 function blobToFile(theBlob: any, fileName: string) {
-    theBlob.lastModifiedDate = new Date();
-    theBlob.name = fileName;
-    return theBlob;
-  }
+  theBlob.lastModifiedDate = new Date();
+  theBlob.name = fileName;
+  return theBlob;
+}
 
-  function saveScreenshot(blob :any) {
-    var url = URL.createObjectURL(blob);
-    chrome.downloads.download({
-       url: url,
-       filename: 'screenshot.png'
-    }, function(downloadId) {
-       URL.revokeObjectURL(url);
-    });
-   }
+function downloadBlobAsFile(buffer: ArrayBuffer) {
+  //   console.log("blob", blob, typeof blob);
+  //   var url = URL.createObjectURL(blob);
+  //   chrome.downloads.download(
+  //     {
+  //       url: url,
+  //       filename: "screenshot.png",
+  //     },
+  //     function (downloadId) {
+  //       URL.revokeObjectURL(url);
+  //     }
+  //   );
+
+  const blob = new Blob([buffer], { type: "image/png" });
+
+  try {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "screenshot.png";
+    document.body.appendChild(link);
+    link.click();
+    console.log("link", link, "clicked");
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.log("error", error);
+  }
+}
 
 // Listen for a message from the background script
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    console.log('Taking screenshot message recieved1', message);
+  console.log("Taking screenshot message recieved", message);
+  if (
+    message.type === "take_screenshot" &&
+    message.x != undefined &&
+    message.y != undefined &&
+    message.width &&
+    message.height
+  ) {
+    console.log("Taking Process", message);
 
-    if (message.type === 'take_screenshot') {
-        console.log('Taking screenshot message recieved2', message);
-        // Take a screenshot of the screen
-
-        
-        //@ts-ignore
-        chrome.tabs.captureVisibleTab( null, { format: 'png' }, function(screenshotUrl) {
-            console.log("screenshotUrl",screenshotUrl)
-            // Send the screenshot URL back to the background script
-            var byteString = atob(screenshotUrl.split(',')[1]);
-            console.log("screenshotUrl1",screenshotUrl, byteString)
-            var mimeString = screenshotUrl.split(',')[0].split(':')[1].split(';')[0];
-            console.log("screenshotUrl2",screenshotUrl, mimeString)
-            var ab = new ArrayBuffer(byteString.length);
-            var ia = new Uint8Array(ab);
-            for (var i = 0; i < byteString.length; i++) {
-                ia[i] = byteString.charCodeAt(i);
-            }
-            var blob = new Blob([ab], {type: mimeString});
-            saveScreenshot(blob);
-        });
-    }
+    chrome.tabs.captureVisibleTab(
+      //@ts-ignore
+      null,
+      { format: "png" },
+      (dataUrl) => {
+        console.log("Resp sent Nia", message, dataUrl);
+        sendResponse({ response: dataUrl });
+      }
+    );
+  } else if (message.type === "downloadImage" && message.buffer) {
+    console.log("downloadImage", message);
+    downloadBlobAsFile(message.buffer);
+  }
+  return true;
 });
