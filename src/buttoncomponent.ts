@@ -111,22 +111,27 @@ function processImage(
     canvas.toBlob((blob) => {
       console.log("blob", blob);
       if (blob) {
-        console.log("blob", blob);
-        try {
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement("a");
-          link.href = url;
-          console.log("link", link);
-          link.download = "screenshot.png";
-          document.body.appendChild(link);
-          link.click();
-          console.log("link", link, "clicked");
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-        } catch (error) {
-          console.log("error", error);
-        }
+        // console.log("blob", blob);
+        // try {
+        //   const url = URL.createObjectURL(blob);
+        //   const link = document.createElement("a");
+        //   link.href = url;
+        //   console.log("link", link);
+        //   link.download = "screenshot.png";
+        //   document.body.appendChild(link);
+        //   link.click();
+        //   console.log("link", link, "clicked");
+        //   document.body.removeChild(link);
+        //   URL.revokeObjectURL(url);
+        // } catch (error) {
+        //   console.log("error", error);
+        // }
+
+        let file = new File([blob], "screenshot.jpeg", { type: "image/jpeg" });
+        console.log("file upload check", file, blob);
+
+        chrome.runtime.sendMessage({ type: "upload_document", blob: blob });
       }
-    }, "image/png");
+    }, "image/jpeg");
   };
 }
