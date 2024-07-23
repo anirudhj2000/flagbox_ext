@@ -37,12 +37,15 @@ const App = () => {
         {loggedIn ? (
           <Home />
         ) : showLogin ? (
-          <Login />
+          <Login
+            onLogin={() => {
+              setLoggedIn(true);
+            }}
+          />
         ) : (
           <Landing
             handleClick={() => {
               setShowLogin(true);
-              setLoggedIn(true);
             }}
           />
         )}
