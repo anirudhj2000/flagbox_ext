@@ -75,12 +75,19 @@ function loadButtonComponent() {
           console.log("called");
           console.log("pricess images called", response);
           if (response && response.response) {
+            // processImage(
+            //   response.response,
+            //   0,
+            //   0,
+            //   window.innerWidth,
+            //   window.innerHeight
+            // );
             processImage(
               response.response,
-              0,
-              0,
-              window.innerWidth,
-              window.innerHeight
+              startX,
+              startY,
+              endX - startX,
+              endY - startY
             );
           }
         }
@@ -92,6 +99,14 @@ function loadButtonComponent() {
 
 loadButtonComponent();
 
+function blobToDataURL(blob: Blob, callback: (dataUrl: string) => void) {
+  var a = new FileReader();
+  a.onload = function (e) {
+    callback(e.target?.result?.toString() || "");
+  };
+  a.readAsDataURL(blob);
+}
+
 function processImage(
   dataUrl: string,
   x: number,
@@ -99,38 +114,66 @@ function processImage(
   width: number,
   height: number
 ) {
-  console.log("processImage", dataUrl, x, y, width, height);
   const img = new Image();
   img.src = dataUrl;
   img.onload = () => {
+    console.log("Image loaded with dimensions:", img.width, img.height);
+    console.log("Specified coordinates and dimensions:", x, y, width, height);
+
+    // Calculate the scale factors
+    const scaleX = img.width / window.innerWidth;
+    const scaleY = img.height / window.innerHeight;
+
+    // Scale the coordinates and dimensions
+    const scaledX = x * scaleX;
+    const scaledY = y * scaleY;
+    const scaledWidth = width * scaleX;
+    const scaledHeight = height * scaleY;
+
+    console.log(
+      "Scaled coordinates and dimensions:",
+      scaledX,
+      scaledY,
+      scaledWidth,
+      scaledHeight
+    );
+
+    // Validate coordinates and dimensions
+    if (
+      scaledX + scaledWidth > img.width ||
+      scaledY + scaledHeight > img.height
+    ) {
+      console.error("Specified coordinates and dimensions are out of bounds.");
+      return;
+    }
+
     const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext("2d")!;
-    ctx.drawImage(img, 0, 0, window.innerWidth, window.innerHeight);
+    canvas.width = scaledWidth;
+    canvas.height = scaledHeight;
+    const ctx = canvas.getContext("2d");
+
+    ctx?.drawImage(
+      img,
+      scaledX,
+      scaledY,
+      scaledWidth,
+      scaledHeight,
+      0,
+      0,
+      scaledWidth,
+      scaledHeight
+    );
     canvas.toBlob((blob) => {
       console.log("blob", blob);
       if (blob) {
-        // console.log("blob", blob);
-        // try {
-        //   const url = URL.createObjectURL(blob);
-        //   const link = document.createElement("a");
-        //   link.href = url;
-        //   console.log("link", link);
-        //   link.download = "screenshot.png";
-        //   document.body.appendChild(link);
-        //   link.click();
-        //   console.log("link", link, "clicked");
-        //   document.body.removeChild(link);
-        //   URL.revokeObjectURL(url);
-        // } catch (error) {
-        //   console.log("error", error);
-        // }
-
-        let file = new File([blob], "screenshot.jpeg", { type: "image/jpeg" });
-        console.log("file upload check", file, blob);
-
-        chrome.runtime.sendMessage({ type: "upload_document", blob: blob });
+        console.log("blob and new data url", blob);
+        blobToDataURL(blob, (dataUrl: string) => {
+          console.log("blob and new data url", dataUrl);
+          chrome.runtime.sendMessage({
+            type: "upload_document",
+            dataUrl: dataUrl,
+          });
+        });
       }
     }, "image/jpeg");
   };

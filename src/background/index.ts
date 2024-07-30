@@ -6,9 +6,10 @@ function blobToFile(theBlob: any, fileName: string) {
 }
 
 let token =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuaXJ1ZGhqb3NoaTI4NUBnbWFpbC5jb20iLCJpYXQiOjE3MjE0NzUyMzMsImV4cCI6MTcyMTUxODQzM30.WTsWS0O8TjjJK90VT41mfp9kg-sNXqkAhS8NdHFkQNg";
-function downloadBlobAsFile(blob: string) {
-  console.log("creating bug report", blob);
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuaXJ1ZGhqb3NoaTI4NUBnbWFpbC5jb20iLCJpYXQiOjE3MjIzMzU3MzcsImV4cCI6MTcyMjM3ODkzN30.2flTPmhCvi6dSNytqeVJUw37ErLzxSof7smO0BdNJxw";
+
+function downloadBlobAsFile(dataUrl: string) {
+  console.log("creating bug report", dataUrl);
   const obj = getSystemData();
   const body = {
     name: "New Bug Report #" + Math.floor(Math.random() * 1000),
@@ -28,7 +29,7 @@ function downloadBlobAsFile(blob: string) {
     .then((response) => response.json())
     .then((data) => {
       console.log("bug report created data", data);
-      uploadDocument(data.id, blob);
+      uploadDocument(data.id, dataUrl);
     })
     .catch((error) => {
       console.log("error", error);
@@ -63,7 +64,7 @@ function dataURLtoFile(dataurl: string, filename: string) {
   return new File([u8arr], filename, { type: mime });
 }
 
-const uploadDocument = (id: string, blob: string) => {
+const uploadDocument = (id: string, dataUrl: string) => {
   // let token = "";
   // chrome.storage.local.get("token", (data) => {
   //   console.log("token", data);
@@ -71,10 +72,10 @@ const uploadDocument = (id: string, blob: string) => {
   // });
 
   const formData = new FormData();
-  const file = dataURLtoFile(blob, "screenshot.png");
+  const file = dataURLtoFile(dataUrl, "screenshot.png");
   formData.append("document", file);
 
-  console.log("uploading document", id, formData, blob, file, typeof file);
+  console.log("uploading document", id, formData, dataUrl, file, typeof file);
 
   fetch(`http://localhost:7001/api/flag/uploadDocument/${id}`, {
     method: "POST",
@@ -110,12 +111,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       { format: "png" },
       (dataUrl) => {
         console.log("Resp sent Nia", message, dataUrl);
-        downloadBlobAsFile(dataUrl);
+        // downloadBlobAsFile(dataUrl);
+        sendResponse({ response: dataUrl });
       }
     );
-  } else if (message.type === "upload_document" && message.blob) {
+  } else if (message.type === "upload_document" && message.dataUrl) {
     console.log("upload_document", message);
-    downloadBlobAsFile(message.blob);
+    downloadBlobAsFile(message.dataUrl);
   } else if (message.type == "login" && message.email && message.password) {
     console.log("Login Process", message);
     // Perform login logic here

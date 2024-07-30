@@ -5,7 +5,7 @@ import Home from "./components/home";
 import Landing from "./components/landing";
 
 const App = () => {
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(true);
   const [showLogin, setShowLogin] = useState(false);
 
   useEffect(() => {
