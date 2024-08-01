@@ -22,7 +22,6 @@ const Home = () => {
           flexDirection: "row",
           justifyContent: "start",
           alignItems: "center",
-          marginTop: 4,
         }}
       >
         <button
