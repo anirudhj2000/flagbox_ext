@@ -118,10 +118,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   } else if (message.type === "upload_document" && message.dataUrl) {
     console.log("upload_document", message);
     downloadBlobAsFile(message.dataUrl);
-  } else if (message.type == "login" && message.email && message.password) {
+  } else if (message.type == "loginpopup") {
     console.log("Login Process", message);
-    // Perform login logic here
-    // Example:
+
+    console.log(
+      "Login ",
+      chrome.runtime.getURL("loginscreen.html"),
+      chrome.runtime.getURL("buttoncomponent.html")
+    );
+    chrome.tabs.create({
+      url: chrome.runtime.getURL("loginscreen.html"),
+    });
+  } else if (message.type == "login" && message.email && message.password) {
     const { email, password } = message;
     fetch("http://localhost:7001/api/login", {
       method: "POST",
@@ -135,11 +143,20 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (data.error) {
           sendResponse({ error: data.error });
         } else {
+          await chrome.storage.local.set(
+            { token: data.token.toString() },
+            () => {
+              console.log("Token saved", data.token);
+            }
+          );
+          await chrome.storage.local.set({ user: JSON.stringify(data) }, () => {
+            console.log("User saved", data);
+            chrome.storage.local.get("token", (data) => {
+              console.log("Token saved", data);
+            });
+          });
           console.log("Login successful", data);
           sendResponse({ success: true, data: data });
-
-          await chrome.storage.local.set({ token: data.token.toString() });
-          await chrome.storage.local.set({ user: JSON.stringify(data) });
         }
       })
       .catch((error) => {
