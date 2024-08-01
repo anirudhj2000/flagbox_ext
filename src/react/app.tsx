@@ -1,9 +1,10 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import Home from "./components/home";
-import Landing from "./components/landing";
 import "../tailwind.css";
 import { IoIosSettings } from "react-icons/io";
+import { FaHeartCircleBolt } from "react-icons/fa6";
+import { MdHome } from "react-icons/md";
 
 const App = () => {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -20,12 +21,31 @@ const App = () => {
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center w-[350px] h-[250px] bg-red-100 p-4">
+    <div className="flex flex-col items-center justify-start w-[350px] h-[200px] bg-red-50 p-4">
       <div className=" flex flex-row w-full justify-between">
         <h2 className=" text-xl text-red-400 font-medium">Flagbox</h2>
-        <button className=" cursor-pointer">
-          <IoIosSettings className=" text-gray-500" />
-        </button>
+        <div className=" flex flex-row gap-x-3">
+          <button className=" cursor-pointer hover:shadow-lg">
+            <MdHome className=" text-gray-500 text-xl" />
+          </button>
+          <button className=" cursor-pointer hover:shadow-lg">
+            <IoIosSettings className=" text-gray-500 text-xl" />
+          </button>
+        </div>
+      </div>
+
+      <div className=" flex flex-col items-center w-full mt-8">
+        {loggedIn ? (
+          <Home />
+        ) : (
+          <div className=" flex flex-col items-center w-full">
+            <FaHeartCircleBolt className=" text-3xl text-red-500 cursor-pointer" />
+            <p className=" text-red-400 text-xl">Welcome to flagbox!</p>
+            <button className="px-8 py-2 bg-red-400 text-white mt-2 rounded-lg">
+              LOGIN
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

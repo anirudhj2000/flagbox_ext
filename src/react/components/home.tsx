@@ -1,4 +1,6 @@
 import React from "react";
+// import "../tailwind.css";
+import { TbCapture } from "react-icons/tb";
 
 const takeScreenshot = async () => {
   const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -8,62 +10,14 @@ const takeScreenshot = async () => {
 
 const Home = () => {
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "start",
-        width: "100%",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "start",
-          alignItems: "center",
-        }}
+    <div className=" w-full flex flex-col items-start">
+      <button
+        onClick={takeScreenshot}
+        className=" flex w-full flex-row items-center justify-center py-2 px-4 gap-x-2 border-[1px] rounded-full border-red-400"
       >
-        <button
-          onClick={takeScreenshot}
-          style={{
-            color: "#fc5151",
-            cursor: "pointer",
-            border: "solid 1px #fc5151",
-            borderRadius: 8,
-            padding: 4,
-            backgroundColor: "transparent",
-          }}
-        >
-          Capture Screenshot
-        </button>
-      </div>
-
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "start",
-          alignItems: "center",
-          marginTop: 4,
-        }}
-      >
-        <button
-          onClick={() => {
-            // logic to navigate to the dashboard
-          }}
-          style={{
-            color: "#fc5151",
-            cursor: "pointer",
-            border: "solid 1px #fc5151",
-            borderRadius: 8,
-            padding: 4,
-            backgroundColor: "transparent",
-          }}
-        >
-          Visit Dashboard
-        </button>
-      </div>
+        <TbCapture className=" text-gray-800 text-xl" />
+        <p className=" text-gray-800 text-sm">Capture Screenshot</p>
+      </button>
     </div>
   );
 };
