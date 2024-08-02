@@ -41,6 +41,10 @@ module.exports = {
           from: path.resolve("src", "loginscreen", "loginscreen.css"),
           to: path.resolve("dist"),
         },
+        {
+          from: path.resolve("src", "buttoncomponent", "buttoncomponent.css"),
+          to: path.resolve("dist"),
+        },
       ],
     }),
   ].concat(multipleHtmlPlugins),
