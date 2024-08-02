@@ -16,7 +16,7 @@ const Home = () => {
         className=" flex w-full flex-row items-center justify-center py-2 px-4 gap-x-2 border-[1px] rounded-full border-red-400"
       >
         <TbCapture className=" text-gray-800 text-xl" />
-        <p className=" text-gray-800 text-sm">Capture Screenshot</p>
+        <p className=" text-red-300 text-sm">Capture Screenshot</p>
       </button>
     </div>
   );

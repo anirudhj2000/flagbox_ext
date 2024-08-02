@@ -5,6 +5,7 @@ import "../tailwind.css";
 import { IoIosSettings } from "react-icons/io";
 import { FaHeartCircleBolt } from "react-icons/fa6";
 import { MdHome } from "react-icons/md";
+import { IoMdHelpCircleOutline } from "react-icons/io";
 
 const App = () => {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -46,6 +47,13 @@ const App = () => {
             </button>
           </div>
         )}
+      </div>
+      <div className=" absolute bottom-2 flex flex-row w-full justify-between px-2">
+        <div></div>
+
+        <button>
+          <IoMdHelpCircleOutline className=" text-xl " />
+        </button>
       </div>
     </div>
   );
