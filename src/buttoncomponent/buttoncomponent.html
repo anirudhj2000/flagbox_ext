@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="buttoncomponent.css" />
+  </head>
+  <body>
+    <div id="cursor"></div>
+    <div class="containercomp">
+      <div id="preview-window" class="preview-window">
+        <div class="preview-image" id="preview-image">
+          <img id="preview-img" />
+        </div>
+        <div class="preview-data" id="preview-data">
+          <a id="close-preview">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="black"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="feather feather-x"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </a>
+
+          <h2 id="newflag">New Flag</h2>
+
+          <form id="flag-form">
+            <div class="preview-title">
+              <label for="title">Title</label>
+              <input />
+            </div>
+
+            <div class="preview-description">
+              <label for="description">Description</label>
+              <textarea></textarea>
+            </div>
+          </form>
+
+          <div class="check-fullscreen" id="check-fullscreen">
+            <input type="checkbox" id="include-fullscreen" />
+            <label for="include-fullscreen">Include Complete Screen</label>
+          </div>
+
+          <div class="preview-buttons">
+            <button id="cancel">Cancel</button>
+            <button id="save">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="buttoncomponent.js"></script>
+  </body>
+</html>
