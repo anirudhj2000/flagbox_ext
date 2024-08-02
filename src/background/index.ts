@@ -8,11 +8,17 @@ function blobToFile(theBlob: any, fileName: string) {
 let token =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuaXJ1ZGhqb3NoaTI4NUBnbWFpbC5jb20iLCJpYXQiOjE3MjIzMzU3MzcsImV4cCI6MTcyMjM3ODkzN30.2flTPmhCvi6dSNytqeVJUw37ErLzxSof7smO0BdNJxw";
 
-function downloadBlobAsFile(dataUrl: string) {
+function downloadBlobAsFile(
+  dataUrl: string,
+  title: string,
+  description: string,
+  fullscreenData: string
+) {
   console.log("creating bug report", dataUrl);
   const obj = getSystemData();
   const body = {
-    name: "New Bug Report #" + Math.floor(Math.random() * 1000),
+    name: title || "New Bug Report #" + Math.floor(Math.random() * 1000),
+    description: description || null,
     systemData: obj,
   };
 
@@ -117,7 +123,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     );
   } else if (message.type === "upload_document" && message.dataUrl) {
     console.log("upload_document", message);
-    downloadBlobAsFile(message.dataUrl);
+    downloadBlobAsFile(
+      message.dataUrl,
+      message.title,
+      message.description,
+      message.fullscreenData
+    );
   } else if (message.type == "loginpopup") {
     console.log("Login Process", message);
 
