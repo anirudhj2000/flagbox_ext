@@ -1,3 +1,81 @@
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  console.log("Taking screenshot message recieved", message);
+  if (
+    message.type === "take_screenshot" &&
+    message.x != undefined &&
+    message.y != undefined &&
+    message.width &&
+    message.height
+  ) {
+    console.log("Taking Process", message);
+
+    chrome.tabs.captureVisibleTab(
+      //@ts-ignore
+      null,
+      { format: "png" },
+      (dataUrl) => {
+        console.log("Resp sent Nia", message, dataUrl);
+        // downloadBlobAsFile(dataUrl);
+        sendResponse({ response: dataUrl });
+      }
+    );
+  } else if (message.type === "upload_document" && message.dataUrl) {
+    console.log("upload_document", message);
+    downloadBlobAsFile(
+      message.dataUrl,
+      message.title,
+      message.description,
+      message.fullscreenData
+    );
+  } else if (message.type == "loginpopup") {
+    console.log("Login Process", message);
+
+    console.log(
+      "Login ",
+      chrome.runtime.getURL("loginscreen.html"),
+      chrome.runtime.getURL("buttoncomponent.html")
+    );
+    chrome.tabs.create({
+      url: chrome.runtime.getURL("loginscreen.html"),
+    });
+  } else if (message.type == "login" && message.email && message.password) {
+    const { email, password } = message;
+    fetch("http://localhost:7001/api/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    })
+      .then((response) => response.json())
+      .then(async (data) => {
+        if (data.error) {
+          sendResponse({ error: data.error });
+        } else {
+          await chrome.storage.local.set(
+            { token: data.token.toString() },
+            () => {
+              console.log("Token saved", data.token);
+            }
+          );
+          await chrome.storage.local.set({ user: JSON.stringify(data) }, () => {
+            console.log("User saved", data);
+            chrome.storage.local.get("token", (data) => {
+              console.log("Token saved", data);
+            });
+          });
+          console.log("Login successful", data);
+          sendResponse({ success: true, data: data });
+        }
+      })
+      .catch((error) => {
+        console.log("login error", error);
+      });
+  }
+
+  return true;
+});
+
 // content script (content.ts)
 function blobToFile(theBlob: any, fileName: string) {
   theBlob.lastModifiedDate = new Date();
@@ -99,84 +177,6 @@ const uploadDocument = (id: string, dataUrl: string) => {
       console.log("Upload failed", error);
     });
 };
-
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log("Taking screenshot message recieved", message);
-  if (
-    message.type === "take_screenshot" &&
-    message.x != undefined &&
-    message.y != undefined &&
-    message.width &&
-    message.height
-  ) {
-    console.log("Taking Process", message);
-
-    chrome.tabs.captureVisibleTab(
-      //@ts-ignore
-      null,
-      { format: "png" },
-      (dataUrl) => {
-        console.log("Resp sent Nia", message, dataUrl);
-        // downloadBlobAsFile(dataUrl);
-        sendResponse({ response: dataUrl });
-      }
-    );
-  } else if (message.type === "upload_document" && message.dataUrl) {
-    console.log("upload_document", message);
-    downloadBlobAsFile(
-      message.dataUrl,
-      message.title,
-      message.description,
-      message.fullscreenData
-    );
-  } else if (message.type == "loginpopup") {
-    console.log("Login Process", message);
-
-    console.log(
-      "Login ",
-      chrome.runtime.getURL("loginscreen.html"),
-      chrome.runtime.getURL("buttoncomponent.html")
-    );
-    chrome.tabs.create({
-      url: chrome.runtime.getURL("loginscreen.html"),
-    });
-  } else if (message.type == "login" && message.email && message.password) {
-    const { email, password } = message;
-    fetch("http://localhost:7001/api/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-    })
-      .then((response) => response.json())
-      .then(async (data) => {
-        if (data.error) {
-          sendResponse({ error: data.error });
-        } else {
-          await chrome.storage.local.set(
-            { token: data.token.toString() },
-            () => {
-              console.log("Token saved", data.token);
-            }
-          );
-          await chrome.storage.local.set({ user: JSON.stringify(data) }, () => {
-            console.log("User saved", data);
-            chrome.storage.local.get("token", (data) => {
-              console.log("Token saved", data);
-            });
-          });
-          console.log("Login successful", data);
-          sendResponse({ success: true, data: data });
-        }
-      })
-      .catch((error) => {
-        console.log("login error", error);
-      });
-  }
-
-  return true;
-});
 
 function getSystemData() {
   "use strict";

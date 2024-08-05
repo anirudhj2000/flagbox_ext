@@ -66,10 +66,10 @@ function loadButtonComponent() {
             // );
             let dataUrl = await processImage(
               response.response,
-              startX,
-              startY,
-              endX - startX,
-              endY - startY
+              startX + 2,
+              startY + 2,
+              endX - startX - 2,
+              endY - startY - 2
             );
 
             document.body.style.backgroundColor = "#00000044";
@@ -93,32 +93,24 @@ function loadButtonComponent() {
               ?.setAttribute("src", dataUrl);
 
             document.getElementById("save")?.addEventListener("click", () => {
-              let title = (
-                document.getElementById("preview-title") as HTMLInputElement
-              ).value;
-
-              let description = (
-                document.getElementById(
-                  "preview-description"
-                ) as HTMLInputElement
-              ).value;
-
-              let includeFullScreen = (
-                document.getElementById(
-                  "include-fullscreen"
-                ) as HTMLInputElement
-              ).checked;
-
-              console.log("save button clicked", dataUrl);
-
-              chrome.runtime.sendMessage({
-                type: "upload_document",
-                dataUrl: dataUrl,
-                title,
-                description,
-                fullscreenData: includeFullScreen ? response.response : "",
-              });
+              CreateBugReport(dataUrl, response.response);
             });
+
+            document.getElementById("cancel")?.addEventListener("click", () => {
+              if (previewWindow) {
+                previewWindow.style.display = "none";
+              }
+              chrome.runtime.sendMessage({ type: "remove_iframe" });
+            });
+
+            document
+              .getElementById("close-preview")
+              ?.addEventListener("click", () => {
+                if (previewWindow) {
+                  previewWindow.style.display = "none";
+                }
+                chrome.runtime.sendMessage({ type: "remove_iframe" });
+              });
           }
         }
       );
@@ -127,6 +119,29 @@ function loadButtonComponent() {
 }
 
 loadButtonComponent();
+
+function CreateBugReport(dataUrl: string, completeScreenshot?: string) {
+  let title = (document.getElementById("preview-title") as HTMLInputElement)
+    .value;
+
+  let description = (
+    document.getElementById("preview-description") as HTMLInputElement
+  ).value;
+
+  let includeFullScreen = (
+    document.getElementById("include-fullscreen") as HTMLInputElement
+  ).checked;
+
+  console.log("save button clicked", dataUrl);
+
+  chrome.runtime.sendMessage({
+    type: "upload_document",
+    dataUrl: dataUrl,
+    title,
+    description,
+    fullscreenData: includeFullScreen ? completeScreenshot : null,
+  });
+}
 
 function blobToDataURL(blob: Blob, callback: (dataUrl: string) => void) {
   var a = new FileReader();
