@@ -5,7 +5,7 @@ import { TbCapture } from "react-icons/tb";
 const takeScreenshot = async () => {
   const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
   const tab = tabs[0];
-  chrome.tabs.sendMessage(tab.id || 0, { type: "TAKE_SCREENSHOT" });
+  chrome.tabs.sendMessage(tab.id || 0, { type: "take_screenshot" });
 };
 
 const Home = () => {
