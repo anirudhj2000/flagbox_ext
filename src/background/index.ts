@@ -1,139 +1,8 @@
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log("Taking screenshot message recieved", message);
-  if (
-    message.type === "take_screenshot" &&
-    message.x != undefined &&
-    message.y != undefined &&
-    message.width &&
-    message.height
-  ) {
-    console.log("Taking Process", message);
-
-    chrome.tabs.captureVisibleTab(
-      //@ts-ignore
-      null,
-      { format: "png" },
-      (dataUrl) => {
-        console.log("Resp sent Nia", message, dataUrl);
-        // downloadBlobAsFile(dataUrl);
-        sendResponse({ response: dataUrl });
-      }
-    );
-  } else if (message.type === "upload_document" && message.dataUrl) {
-    console.log("upload_document", message);
-    downloadBlobAsFile(
-      message.dataUrl,
-      message.title,
-      message.description,
-      message.fullscreenData
-    );
-  } else if (message.type == "loginpopup") {
-    console.log("Login Process", message);
-
-    console.log(
-      "Login ",
-      chrome.runtime.getURL("loginscreen.html"),
-      chrome.runtime.getURL("buttoncomponent.html")
-    );
-    chrome.tabs.create({
-      url: chrome.runtime.getURL("loginscreen.html"),
-    });
-  } else if (message.type == "login" && message.email && message.password) {
-    const { email, password } = message;
-    fetch("http://localhost:7001/api/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-    })
-      .then((response) => response.json())
-      .then(async (data) => {
-        if (data.error) {
-          sendResponse({ error: data.error });
-        } else {
-          await chrome.storage.local.set(
-            { token: data.token.toString() },
-            () => {
-              console.log("Token saved", data.token);
-            }
-          );
-          await chrome.storage.local.set({ user: JSON.stringify(data) }, () => {
-            console.log("User saved", data);
-            chrome.storage.local.get("token", (data) => {
-              console.log("Token saved", data);
-            });
-          });
-          console.log("Login successful", data);
-          sendResponse({ success: true, data: data });
-        }
-      })
-      .catch((error) => {
-        console.log("login error", error);
-      });
-  }
-
-  return true;
-});
-
 // content script (content.ts)
 function blobToFile(theBlob: any, fileName: string) {
   theBlob.lastModifiedDate = new Date();
   theBlob.name = fileName;
   return theBlob;
-}
-
-let token =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuaXJ1ZGhqb3NoaTI4NUBnbWFpbC5jb20iLCJpYXQiOjE3MjIzMzU3MzcsImV4cCI6MTcyMjM3ODkzN30.2flTPmhCvi6dSNytqeVJUw37ErLzxSof7smO0BdNJxw";
-
-function downloadBlobAsFile(
-  dataUrl: string,
-  title: string,
-  description: string,
-  fullscreenData: string
-) {
-  console.log("creating bug report", dataUrl);
-  const obj = getSystemData();
-  const body = {
-    name: title || "New Bug Report #" + Math.floor(Math.random() * 1000),
-    description: description || null,
-    systemData: obj,
-  };
-
-  fetch("http://localhost:7001/api/flag", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      ...body,
-    }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      console.log("bug report created data", data);
-      uploadDocument(data.id, dataUrl);
-    })
-    .catch((error) => {
-      console.log("error", error);
-    });
-
-  // const blob = new Blob([buffer], { type: "image/png" });
-
-  // try {
-  //   const url = URL.createObjectURL(blob);
-  //   const link = document.createElement("a");
-  //   link.href = url;
-  //   link.download = "screenshot.png";
-  //   document.body.appendChild(link);
-  //   link.click();
-  //   console.log("link", link, "clicked");
-  //   document.body.removeChild(link);
-  //   URL.revokeObjectURL(url);
-  // } catch (error) {
-  //   console.log("error", error);
-  // }
 }
 
 function dataURLtoFile(dataurl: string, filename: string) {
@@ -147,36 +16,6 @@ function dataURLtoFile(dataurl: string, filename: string) {
   }
   return new File([u8arr], filename, { type: mime });
 }
-
-const uploadDocument = (id: string, dataUrl: string) => {
-  // let token = "";
-  // chrome.storage.local.get("token", (data) => {
-  //   console.log("token", data);
-  //   token = data.token;
-  // });
-
-  const formData = new FormData();
-  const file = dataURLtoFile(dataUrl, "screenshot.png");
-  formData.append("document", file);
-
-  console.log("uploading document", id, formData, dataUrl, file, typeof file);
-
-  fetch(`http://localhost:7001/api/flag/uploadDocument/${id}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: formData,
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      console.log("Upload successful", data);
-      chrome.runtime.sendMessage({ type: "remove_iframe" });
-    })
-    .catch((error) => {
-      console.log("Upload failed", error);
-    });
-};
 
 function getSystemData() {
   "use strict";
@@ -278,4 +117,213 @@ function getSystemData() {
   console.log("System Data", obj);
 
   return obj;
+}
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  console.log("Taking screenshot message recieved", message);
+  if (
+    message.type === "take_screenshot" &&
+    message.x != undefined &&
+    message.y != undefined &&
+    message.width &&
+    message.height
+  ) {
+    console.log("Taking Process", message);
+
+    chrome.tabs.captureVisibleTab(
+      //@ts-ignore
+      null,
+      { format: "png" },
+      (dataUrl) => {
+        console.log("Resp sent Nia", message, dataUrl);
+        // downloadBlobAsFile(dataUrl);
+        sendResponse({ response: dataUrl });
+      }
+    );
+  } else if (message.type === "upload_document" && message.dataUrl) {
+    console.log("upload_document", message);
+    createFlag(
+      message.dataUrl,
+      message.title,
+      message.description,
+      message.fullscreenData
+    );
+  } else if (message.type == "loginpopup") {
+    console.log("Login Process", message);
+
+    chrome.tabs.create({
+      url: chrome.runtime.getURL("loginscreen.html"),
+    });
+  } else if (message.type == "login" && message.email && message.password) {
+    const { email, password } = message;
+    sendResponse(login(email, password));
+  }
+
+  return true;
+});
+
+function createFlag(
+  dataUrl: string,
+  title: string,
+  description: string,
+  fullscreenData: string
+) {
+  chrome.storage.local.get("token", (data) => {
+    console.log("token 1", data);
+    let token = data.token;
+
+    refreshToken(token)
+      .then((tokenData) => {
+        console.log("token data", tokenData);
+
+        const obj = getSystemData();
+        const body = {
+          name: title || "New Bug Report #" + Math.floor(Math.random() * 1000),
+          description: description || null,
+          systemData: obj,
+        };
+
+        fetch("http://localhost:7001/api/flag", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            ...body,
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log("bug report", data);
+            uploadDocument(data.id, dataUrl, token);
+
+            if (fullscreenData) {
+              uploadDocument(data.id, fullscreenData, token);
+            }
+          })
+          .catch((error) => {
+            if (error.status == 401) {
+              chrome.storage.local.remove("token", () => {
+                console.log("Token removed");
+                chrome.tabs.create({
+                  url: chrome.runtime.getURL("loginscreen.html"),
+                });
+              });
+            }
+            console.log("error", JSON.stringify(error));
+          });
+      })
+      .catch((error) => {
+        console.log("error", JSON.stringify(error));
+        chrome.storage.local.remove("token", () => {
+          console.log("Token removed");
+          chrome.tabs.create({
+            url: chrome.runtime.getURL("loginscreen.html"),
+          });
+        });
+      });
+  });
+}
+
+const uploadDocument = (id: string, dataUrl: string, token: string) => {
+  const formData = new FormData();
+  const file = dataURLtoFile(dataUrl, "screenshot.png");
+  formData.append("document", file);
+
+  console.log("uploading document", id, formData, dataUrl, file, typeof file);
+
+  fetch(`http://localhost:7001/api/flag/uploadDocument/${id}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  })
+    .then((response) => response.json())
+    .then(async (data) => {
+      console.log("Upload successful", data);
+      const tabs = await chrome.tabs.query({
+        active: true,
+        currentWindow: true,
+      });
+      const tab = tabs[0];
+      console.log("tab", tab, tabs, tab.id);
+      chrome.tabs.sendMessage(tab.id || 0, { type: "remove_iframe" });
+    })
+    .catch((error) => {
+      console.log("Upload failed", error);
+      chrome.storage.local.remove("token", () => {
+        console.log("Token removed");
+        chrome.runtime.sendMessage({ type: "loginpopup" });
+      });
+    });
+};
+
+async function login(email: string, password: string) {
+  fetch("http://localhost:7001/api/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email, password }),
+  })
+    .then((response) => response.json())
+    .then(async (data) => {
+      if (data.error) {
+        return { error: data.error };
+      } else {
+        await chrome.storage.local.set({ token: data.token.toString() }, () => {
+          console.log("Token saved", data.token);
+        });
+        await chrome.storage.local.set({ user: JSON.stringify(data) }, () => {
+          console.log("User saved", data);
+          chrome.storage.local.get("token", (data) => {
+            console.log("Token saved", data);
+          });
+        });
+        console.log("Login successful", data);
+        return { success: true, data: data };
+      }
+    })
+    .catch((error) => {
+      console.log("login error", error);
+    });
+}
+
+function refreshToken(token: string) {
+  return new Promise((resolve, reject) => {
+    fetch("http://localhost:7001/api/refresh-token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ token }),
+    })
+      .then((response) => response.json())
+      .then(async (data) => {
+        if (data.error) {
+          reject({ error: data.error });
+        } else {
+          await chrome.storage.local.set(
+            { token: data.token.toString() },
+            () => {
+              console.log("Token saved", data.token);
+            }
+          );
+          await chrome.storage.local.set({ user: JSON.stringify(data) }, () => {
+            console.log("User saved", data);
+            chrome.storage.local.get("token", (data) => {
+              console.log("Token saved", data);
+            });
+          });
+          console.log("Login successful", data);
+          resolve({ success: true, data: data });
+        }
+      })
+      .catch((error) => {
+        reject({ error: error });
+        console.log("login error", error);
+      });
+  });
 }
