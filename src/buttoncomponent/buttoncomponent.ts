@@ -100,7 +100,7 @@ function loadButtonComponent() {
               if (previewWindow) {
                 previewWindow.style.display = "none";
               }
-              chrome.runtime.sendMessage({ type: "remove_iframe" });
+              // chrome.runtime.sendMessage({ type: "remove_iframe" });
             });
 
             document
@@ -109,7 +109,7 @@ function loadButtonComponent() {
                 if (previewWindow) {
                   previewWindow.style.display = "none";
                 }
-                chrome.runtime.sendMessage({ type: "remove_iframe" });
+                // chrome.runtime.sendMessage({ type: "remove_iframe" });
               });
           }
         }
@@ -121,25 +121,32 @@ function loadButtonComponent() {
 loadButtonComponent();
 
 function CreateBugReport(dataUrl: string, completeScreenshot?: string) {
-  let title = (document.getElementById("preview-title") as HTMLInputElement)
-    .value;
+  let title = (
+    document.getElementById("preview-title-input") as HTMLInputElement
+  ).value;
 
   let description = (
-    document.getElementById("preview-description") as HTMLInputElement
+    document.getElementById("preview-description-textarea") as HTMLInputElement
   ).value;
 
   let includeFullScreen = (
     document.getElementById("include-fullscreen") as HTMLInputElement
   ).checked;
 
-  console.log("save button clicked", dataUrl);
+  console.log(
+    "save button clicked",
+    dataUrl,
+    title,
+    description,
+    includeFullScreen
+  );
 
   chrome.runtime.sendMessage({
     type: "upload_document",
     dataUrl: dataUrl,
     title,
     description,
-    fullscreenData: includeFullScreen ? completeScreenshot : null,
+    fullscreenData: includeFullScreen ? completeScreenshot : "",
   });
 }
 
@@ -232,93 +239,16 @@ function processImage(
   });
 }
 
-// const handleImageEdit = (dataUrl: string) => {
-//   const dataUri = dataUrl.replace(/^data:image\/(png|jpeg);base64,/, "");
+chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+  console.log("Button Component Message Listener", message);
 
-//   const { TABS, TOOLS }: any = FilerobotImageEditor;
-//   const config: FilerobotImageEditorConfig = {
-//     source: dataUri,
-//     onSave: (editedImageObject: any, designState: any) => {
-//       console.log("saved", editedImageObject, designState);
-//       alert(
-//         "Image saved " +
-//           JSON.stringify(editedImageObject) +
-//           typeof editedImageObject
-//       );
-//     },
-//     annotationsCommon: {
-//       fill: "#ff0000",
-//     },
-//     Text: { text: "Filerobot..." },
-//     Rotate: { angle: 90, componentType: "slider" },
-//     translations: {
-//       profile: "Profile",
-//       coverPhoto: "Cover photo",
-//       facebook: "Facebook",
-//       socialMedia: "Social Media",
-//       fbProfileSize: "180x180px",
-//       fbCoverPhotoSize: "820x312px",
-//     },
-//     Crop: {
-//       presetsItems: [
-//         {
-//           titleKey: "classicTv",
-//           descriptionKey: "4:3",
-//           ratio: 4 / 3,
-//           // icon: CropClassicTv, // optional, CropClassicTv is a React Function component. Possible (React Function component, string or HTML Element)
-//         },
-//         {
-//           titleKey: "cinemascope",
-//           descriptionKey: "21:9",
-//           ratio: 21 / 9,
-//           // icon: CropCinemaScope, // optional, CropCinemaScope is a React Function component.  Possible (React Function component, string or HTML Element)
-//         },
-//       ],
-//       presetsFolders: [
-//         {
-//           titleKey: "socialMedia", // will be translated into Social Media as backend contains this translation key
-
-//           // icon: Social, // optional, Social is a React Function component. Possible (React Function component, string or HTML Element)
-//           groups: [
-//             {
-//               titleKey: "facebook",
-//               items: [
-//                 {
-//                   titleKey: "profile",
-//                   width: 180,
-//                   height: 180,
-//                   descriptionKey: "fbProfileSize",
-//                 },
-//                 {
-//                   titleKey: "coverPhoto",
-//                   width: 820,
-//                   height: 312,
-//                   descriptionKey: "fbCoverPhotoSize",
-//                 },
-//               ],
-//             },
-//           ],
-//         },
-//       ],
-//     },
-//     tabsIds: [TABS.ADJUST, TABS.ANNOTATE, TABS.WATERMARK], // or ['Adjust', 'Annotate', 'Watermark']
-//     defaultTabId: TABS.ANNOTATE, // or 'Annotate'
-//     defaultToolId: TOOLS.TEXT,
-//     savingPixelRatio: 0,
-//     previewPixelRatio: 0,
-//   };
-
-//   // Assuming we have a div with id="editor_container"
-
-//   let editor_container = document.querySelector(
-//     "#editor_container"
-//   ) as HTMLElement;
-//   if (editor_container) {
-//     const filerobotImageEditor = new FilerobotImageEditor(
-//       editor_container,
-//       config
-//     );
-
-//     filerobotImageEditor.render();
-//   }
-// };
+  if (message.type == "Successfull") {
+    console.log("Successfull");
+  } else if (message.type == "Error") {
+    console.log("Error");
+  } else if (message.type == "remove_iframe") {
+    return true;
+    const root = document.getRootNode();
+    console.log("Root", root);
+  }
+});
