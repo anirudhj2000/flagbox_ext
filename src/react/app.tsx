@@ -17,6 +17,7 @@ const App = () => {
         setLoggedIn(true);
       } else {
         setLoggedIn(false);
+        chrome.runtime.sendMessage({ type: "loginpopup" });
       }
     });
   }, []);

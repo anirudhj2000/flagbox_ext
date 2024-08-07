@@ -9,7 +9,11 @@ let endY = 0;
 let show = false;
 
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
-  console.log("Content Script Message Listener", message);
+  console.log(
+    "Content Script Message Listener",
+    message,
+    message.type == "remove_iframe"
+  );
   if (message.type === "take_screenshot") {
     const iframe = document.createElement("iframe");
     iframe.src = chrome.runtime.getURL("buttoncomponent.html");
@@ -28,13 +32,18 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     iframe.id = "flagbox-iframe";
 
     console.log("iframe", iframe);
-
     document.body.appendChild(iframe);
-
-    if (message === "remove_iframe") {
-      document.body.removeChild(iframe);
-    }
-  } else if (message.type === "remove_iframe") {
-    document.getElementById("flagbox-iframe")?.remove();
   }
+
+  if (message.type === "remove_iframe") {
+    const root = document.getRootNode();
+    const iframe = document.getElementById("flagbox-iframe");
+    console.log("root", root);
+    console.log("remove_iframe", iframe);
+    if (iframe) {
+      iframe.remove();
+    }
+  }
+
+  return true;
 });
