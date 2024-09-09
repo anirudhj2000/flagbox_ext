@@ -142,6 +142,28 @@ body{
     /* outline: 1px solid black; */
 }
 
+.projects-dropdown {
+    width: 90%;
+    margin-top: 2.5%;
+    display: flex;
+    flex-direction: column;
+}
+
+.projects-dropdown label {
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.projects-dropdown select {
+    width: 100%;
+    height: 30px;
+    border: none;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    border: 1px solid black;
+    margin-top: 8px;
+    /* outline: 1px solid black; */
+}
 
 
 .check-fullscreen {
@@ -151,6 +173,7 @@ body{
     justify-content:start;
     align-items: center;
     margin-top: 8px;
+
 }
 
 .check-fullscreen label {

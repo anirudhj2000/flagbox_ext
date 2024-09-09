@@ -1,4 +1,11 @@
 // content script (content.ts)
+
+import { parse } from "postcss";
+
+// API URL
+// const API_URL = "http://ec2-54-224-16-183.compute-1.amazonaws.com:7001/api";
+const API_URL = "http://localhost:7001/api";
+
 function blobToFile(theBlob: any, fileName: string) {
   theBlob.lastModifiedDate = new Date();
   theBlob.name = fileName;
@@ -120,7 +127,11 @@ function getSystemData() {
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log("Taking screenshot message recieved", message);
+  console.log(
+    "Taking screenshot message recieved",
+    message,
+    message.type == "remove_iframe"
+  );
   if (
     message.type === "take_screenshot" &&
     message.x != undefined &&
@@ -134,10 +145,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       //@ts-ignore
       null,
       { format: "png" },
-      (dataUrl) => {
+      async (dataUrl) => {
         console.log("Resp sent Nia", message, dataUrl);
         // downloadBlobAsFile(dataUrl);
-        sendResponse({ response: dataUrl });
+
+        const projects = await getUserProjects();
+        console.log("projects bg", projects);
+
+        sendResponse({ response: dataUrl, projects: projects });
       }
     );
   } else if (message.type === "upload_document" && message.dataUrl) {
@@ -146,7 +161,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       message.dataUrl,
       message.title,
       message.description,
-      message.fullscreenData
+      message.fullscreenData,
+      message.projectId,
+      sender
     );
   } else if (message.type == "loginpopup") {
     console.log("Login Process", message);
@@ -157,6 +174,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   } else if (message.type == "login" && message.email && message.password) {
     const { email, password } = message;
     sendResponse(login(email, password));
+  } else if (message.type == "remove_iframe") {
+    console.log("remove_iframe sender", sender);
+    if (sender?.tab?.id)
+      chrome.tabs.sendMessage(sender?.tab?.id, { type: "remove_iframe" });
   }
 
   return true;
@@ -166,7 +187,9 @@ function createFlag(
   dataUrl: string,
   title: string,
   description: string,
-  fullscreenData: string
+  fullscreenData: string,
+  projectId: string,
+  sender: any
 ) {
   chrome.storage.local.get("token", (data) => {
     console.log("token 1", data);
@@ -181,9 +204,10 @@ function createFlag(
           name: title || "New Bug Report #" + Math.floor(Math.random() * 1000),
           description: description || null,
           systemData: obj,
+          projectId: parseInt(projectId),
         };
 
-        fetch("http://localhost:7001/api/flag", {
+        fetch(API_URL + "/flag", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -196,10 +220,10 @@ function createFlag(
           .then((response) => response.json())
           .then((data) => {
             console.log("bug report", data);
-            uploadDocument(data.id, dataUrl, token);
+            uploadDocument(data.id, dataUrl, token, sender);
 
             if (fullscreenData) {
-              uploadDocument(data.id, fullscreenData, token);
+              uploadDocument(data.id, fullscreenData, token, sender);
             }
           })
           .catch((error) => {
@@ -226,14 +250,19 @@ function createFlag(
   });
 }
 
-const uploadDocument = (id: string, dataUrl: string, token: string) => {
+const uploadDocument = (
+  id: string,
+  dataUrl: string,
+  token: string,
+  sender: any
+) => {
   const formData = new FormData();
   const file = dataURLtoFile(dataUrl, "screenshot.png");
   formData.append("document", file);
 
   console.log("uploading document", id, formData, dataUrl, file, typeof file);
 
-  fetch(`http://localhost:7001/api/flag/uploadDocument/${id}`, {
+  fetch(`${API_URL}/flag/uploadDocument/${id}`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -242,26 +271,19 @@ const uploadDocument = (id: string, dataUrl: string, token: string) => {
   })
     .then((response) => response.json())
     .then(async (data) => {
-      console.log("Upload successful", data);
       const tabs = await chrome.tabs.query({
         active: true,
         currentWindow: true,
       });
-      const tab = tabs[0];
-      console.log("tab", tab, tabs, tab.id);
-      chrome.tabs.sendMessage(tab.id || 0, { type: "remove_iframe" });
+      chrome.tabs.sendMessage(sender?.tab?.id, { type: "remove_iframe" });
     })
     .catch((error) => {
       console.log("Upload failed", error);
-      chrome.storage.local.remove("token", () => {
-        console.log("Token removed");
-        chrome.runtime.sendMessage({ type: "loginpopup" });
-      });
     });
 };
 
 async function login(email: string, password: string) {
-  fetch("http://localhost:7001/api/login", {
+  fetch(API_URL + "/login", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -293,7 +315,7 @@ async function login(email: string, password: string) {
 
 function refreshToken(token: string) {
   return new Promise((resolve, reject) => {
-    fetch("http://localhost:7001/api/refresh-token", {
+    fetch(API_URL + "/refresh-token", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -325,5 +347,36 @@ function refreshToken(token: string) {
         reject({ error: error });
         console.log("login error", error);
       });
+  });
+}
+
+function getUserProjects() {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get("token", (data) => {
+      let token = data.token;
+
+      fetch(API_URL + "/user/projects", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log("projects", data);
+          resolve(data);
+        })
+        .catch((error) => {
+          console.log("error", JSON.stringify(error));
+          chrome.storage.local.remove("token", () => {
+            console.log("Token removed");
+            chrome.tabs.create({
+              url: chrome.runtime.getURL("loginscreen.html"),
+            });
+          });
+          reject(error);
+        });
+    });
   });
 }

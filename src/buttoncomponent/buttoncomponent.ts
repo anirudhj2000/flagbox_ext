@@ -5,6 +5,8 @@ function loadButtonComponent() {
   let endY = 0;
   let show = false;
 
+  let projects = [];
+
   document.addEventListener("mousemove", moveCursor);
 
   function moveCursor(e: MouseEvent) {
@@ -64,6 +66,10 @@ function loadButtonComponent() {
             //   window.innerWidth,
             //   window.innerHeight
             // );
+
+            const projects = response.projects;
+            console.log("projects", projects);
+
             let dataUrl = await processImage(
               response.response,
               startX + 2,
@@ -76,6 +82,17 @@ function loadButtonComponent() {
 
             document.removeEventListener("mousedown", startDrawing);
             document.removeEventListener("mouseup", stopDrawing);
+
+            const projectSelect = document.getElementById("projects-select");
+            console.log("projectSelect", projectSelect);
+            if (projectSelect) {
+              projects.forEach((project: any) => {
+                const option = document.createElement("option");
+                option.value = project.id;
+                option.text = project.name;
+                projectSelect.appendChild(option);
+              });
+            }
 
             const previewWindow = document.getElementById("preview-window");
             if (previewWindow) {
@@ -100,7 +117,7 @@ function loadButtonComponent() {
               if (previewWindow) {
                 previewWindow.style.display = "none";
               }
-              // chrome.runtime.sendMessage({ type: "remove_iframe" });
+              chrome.runtime.sendMessage({ type: "remove_iframe" });
             });
 
             document
@@ -109,7 +126,7 @@ function loadButtonComponent() {
                 if (previewWindow) {
                   previewWindow.style.display = "none";
                 }
-                // chrome.runtime.sendMessage({ type: "remove_iframe" });
+                chrome.runtime.sendMessage({ type: "remove_iframe" });
               });
           }
         }
@@ -133,6 +150,11 @@ function CreateBugReport(dataUrl: string, completeScreenshot?: string) {
     document.getElementById("include-fullscreen") as HTMLInputElement
   ).checked;
 
+  const projectSelect = document.getElementById(
+    "projects-select"
+  ) as HTMLSelectElement;
+  const selectedProjectId = projectSelect.value;
+
   console.log(
     "save button clicked",
     dataUrl,
@@ -147,6 +169,7 @@ function CreateBugReport(dataUrl: string, completeScreenshot?: string) {
     title,
     description,
     fullscreenData: includeFullScreen ? completeScreenshot : "",
+    projectId: selectedProjectId,
   });
 }
 
@@ -238,17 +261,3 @@ function processImage(
     };
   });
 }
-
-chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
-  console.log("Button Component Message Listener", message);
-
-  if (message.type == "Successfull") {
-    console.log("Successfull");
-  } else if (message.type == "Error") {
-    console.log("Error");
-  } else if (message.type == "remove_iframe") {
-    return true;
-    const root = document.getRootNode();
-    console.log("Root", root);
-  }
-});

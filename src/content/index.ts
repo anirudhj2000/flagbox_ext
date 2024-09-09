@@ -33,9 +33,7 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 
     console.log("iframe", iframe);
     document.body.appendChild(iframe);
-  }
-
-  if (message.type === "remove_iframe") {
+  } else if (message.type === "remove_iframe") {
     const root = document.getRootNode();
     const iframe = document.getElementById("flagbox-iframe");
     console.log("root", root);
@@ -46,4 +44,21 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   }
 
   return true;
+});
+
+// chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+//   console.log("Content Script Message Listener Alt", message);
+//   if (message.type === "remove_iframe") {
+//     const iframe = document.getElementById("flagbox-iframe");
+//     console.log("remove_iframe", iframe);
+//     if (iframe) {
+//       iframe.remove();
+//     }
+//   }
+// });
+
+window.addEventListener("message", function (event) {
+  if (event.data.type === "REMOVE_IFRAME") {
+    console.log("REMOVE_IFRAME WINDOW EVENT", event);
+  }
 });
