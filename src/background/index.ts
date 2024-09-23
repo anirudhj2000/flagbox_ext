@@ -4,7 +4,7 @@ import { parse } from "postcss";
 
 // API URL
 // const API_URL = "http://ec2-54-224-16-183.compute-1.amazonaws.com:7001/api";
-const API_URL = "http://localhost:7001/api";
+const API_URL = "http://localhost:5001/api";
 
 function blobToFile(theBlob: any, fileName: string) {
   theBlob.lastModifiedDate = new Date();
@@ -139,24 +139,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     message.width &&
     message.height
   ) {
-    console.log("Taking Process", message);
-
     chrome.tabs.captureVisibleTab(
       //@ts-ignore
       null,
       { format: "png" },
       async (dataUrl) => {
-        console.log("Resp sent Nia", message, dataUrl);
-        // downloadBlobAsFile(dataUrl);
-
         const projects = await getUserProjects();
-        console.log("projects bg", projects);
-
         sendResponse({ response: dataUrl, projects: projects });
       }
     );
-  } else if (message.type === "upload_document" && message.dataUrl) {
-    console.log("upload_document", message);
+  } else if (message.type === "record_video") {
+    chrome.tabCapture.capture(
+      {
+        video: true,
+        audio: true,
+      },
+      () => {}
+    );
+  } else if (message.type == "upload_document" && message.dataUrl) {
     createFlag(
       message.dataUrl,
       message.title,
@@ -166,16 +166,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sender
     );
   } else if (message.type == "loginpopup") {
-    console.log("Login Process", message);
-
     chrome.tabs.create({
-      url: chrome.runtime.getURL("loginscreen.html"),
+      url: "https://www.flagbox.app/login",
     });
   } else if (message.type == "login" && message.email && message.password) {
     const { email, password } = message;
     sendResponse(login(email, password));
   } else if (message.type == "remove_iframe") {
-    console.log("remove_iframe sender", sender);
     if (sender?.tab?.id)
       chrome.tabs.sendMessage(sender?.tab?.id, { type: "remove_iframe" });
   }
@@ -195,57 +192,43 @@ function createFlag(
     console.log("token 1", data);
     let token = data.token;
 
-    refreshToken(token)
-      .then((tokenData) => {
-        console.log("token data", tokenData);
+    const obj = getSystemData();
+    const body = {
+      name: title || "New Bug Report #" + Math.floor(Math.random() * 1000),
+      description: description || null,
+      systemData: obj,
+      projectId: parseInt(projectId),
+    };
 
-        const obj = getSystemData();
-        const body = {
-          name: title || "New Bug Report #" + Math.floor(Math.random() * 1000),
-          description: description || null,
-          systemData: obj,
-          projectId: parseInt(projectId),
-        };
+    fetch(API_URL + "/flag", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        ...body,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("bug report", data);
+        uploadDocument(data.id, dataUrl, token, sender);
 
-        fetch(API_URL + "/flag", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            ...body,
-          }),
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            console.log("bug report", data);
-            uploadDocument(data.id, dataUrl, token, sender);
-
-            if (fullscreenData) {
-              uploadDocument(data.id, fullscreenData, token, sender);
-            }
-          })
-          .catch((error) => {
-            if (error.status == 401) {
-              chrome.storage.local.remove("token", () => {
-                console.log("Token removed");
-                chrome.tabs.create({
-                  url: chrome.runtime.getURL("loginscreen.html"),
-                });
-              });
-            }
-            console.log("error", JSON.stringify(error));
-          });
+        if (fullscreenData) {
+          uploadDocument(data.id, fullscreenData, token, sender);
+        }
       })
       .catch((error) => {
-        console.log("error", JSON.stringify(error));
-        chrome.storage.local.remove("token", () => {
-          console.log("Token removed");
-          chrome.tabs.create({
-            url: chrome.runtime.getURL("loginscreen.html"),
+        if (error.status == 401) {
+          chrome.storage.local.remove("token", () => {
+            console.log("Token removed");
+            chrome.tabs.create({
+              url: chrome.runtime.getURL("loginscreen.html"),
+            });
           });
-        });
+        }
+        console.log("error", JSON.stringify(error));
       });
   });
 }
@@ -353,6 +336,7 @@ function refreshToken(token: string) {
 function getUserProjects() {
   return new Promise((resolve, reject) => {
     chrome.storage.local.get("token", (data) => {
+      console.log("token 1", data);
       let token = data.token;
 
       fetch(API_URL + "/user/projects", {

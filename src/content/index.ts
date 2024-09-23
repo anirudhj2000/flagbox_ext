@@ -16,7 +16,7 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   );
   if (message.type === "take_screenshot") {
     const iframe = document.createElement("iframe");
-    iframe.src = chrome.runtime.getURL("buttoncomponent.html");
+    iframe.src = chrome.runtime.getURL("screenshotcomponent.html");
     iframe.style.position = "fixed";
     iframe.style.right = "0";
     iframe.style.bottom = "0";
@@ -32,6 +32,23 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     iframe.id = "flagbox-iframe";
 
     console.log("iframe", iframe);
+    document.body.appendChild(iframe);
+  }
+
+  if (message.type === "record_video") {
+    const iframe = document.createElement("iframe");
+    iframe.src = chrome.runtime.getURL("videocomponent.html");
+    iframe.style.position = "fixed";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+    iframe.style.width = "100vw";
+    iframe.style.height = "100vh";
+    iframe.style.border = "none";
+    iframe.style.border = "1px dashed #fa7d7d";
+    iframe.style.zIndex = "9999999";
+    iframe.style.backgroundColor = "transparent";
+    iframe.id = "flagbox-iframe";
+
     document.body.appendChild(iframe);
   } else if (message.type === "remove_iframe") {
     const root = document.getRootNode();

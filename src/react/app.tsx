@@ -11,15 +11,29 @@ const App = () => {
   const [loggedIn, setLoggedIn] = useState(false);
 
   useEffect(() => {
-    chrome.storage.local.get("token", (data) => {
-      console.log("Token", data);
-      if (data.token) {
+    chrome.cookies.getAll({ domain: "localhost" }, (cookies) => {
+      console.log("Cookies", cookies);
+      chrome.storage.local.set({ token: cookies[0].value });
+
+      let token = cookies[0].value;
+
+      if (token.length > 0) {
         setLoggedIn(true);
       } else {
         setLoggedIn(false);
         chrome.runtime.sendMessage({ type: "loginpopup" });
       }
     });
+
+    // chrome.storage.local.get("token", (data) => {
+    //   console.log("Token", data);
+    //   if (data.token) {
+    //     setLoggedIn(true);
+    //   } else {
+    //     setLoggedIn(false);
+    //     chrome.runtime.sendMessage({ type: "loginpopup" });
+    //   }
+    // });
   }, []);
 
   return (
