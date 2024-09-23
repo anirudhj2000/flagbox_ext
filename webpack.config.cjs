@@ -4,7 +4,7 @@ const path = require("path");
 const tailwindcss = require("tailwindcss");
 const autoprefixer = require("autoprefixer");
 
-let htmlPageNames = ["buttoncomponent", "loginscreen"];
+let htmlPageNames = ["screenshotcomponent", "loginscreen", "videocomponent"];
 let multipleHtmlPlugins = htmlPageNames.map((name) => {
   return new HtmlWebpackPlugin({
     template: `./src/${name}/${name}.html`, // relative path to the HTML files
@@ -20,7 +20,8 @@ module.exports = {
     contentScript: "./src/content/index.ts",
     background: "./src/background/index.ts",
     react: "./src/react/index.tsx",
-    buttoncomponent: "./src/buttoncomponent/buttoncomponent.ts",
+    screenshotcomponent: "./src/screenshotcomponent/screenshotcomponent.ts",
+    videocomponent: "./src/videocomponent/videocomponent.ts",
     loginscreen: "./src/loginscreen/loginscreen.ts",
   },
   output: {
@@ -42,7 +43,11 @@ module.exports = {
           to: path.resolve("dist"),
         },
         {
-          from: path.resolve("src", "buttoncomponent", "buttoncomponent.css"),
+          from: path.resolve(
+            "src",
+            "screenshotcomponent",
+            "screenshotcomponent.css"
+          ),
           to: path.resolve("dist"),
         },
       ],

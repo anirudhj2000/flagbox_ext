@@ -17,7 +17,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["buttoncomponent.html", "index.css"],
+      "resources": ["screenshotcomponent.html", "index.css"],
       "matches": ["<all_urls>"]
     }
   ],
@@ -29,6 +29,9 @@
     "storage",
     "webRequest",
     "webRequestBlocking",
-    "scripting"
+    "scripting",
+    "cookies",
+    "http://localhost/*",
+    "tabCapture"
   ]
 }
