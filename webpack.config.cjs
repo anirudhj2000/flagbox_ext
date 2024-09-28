@@ -50,6 +50,14 @@ module.exports = {
           ),
           to: path.resolve("dist"),
         },
+        {
+          from: path.resolve("src", "videocomponent", "videocomponent.css"),
+          to: path.resolve("dist"),
+        },
+        {
+          from: path.resolve("src", "content-tailwind.css"),
+          to: path.resolve("dist"),
+        },
       ],
     }),
   ].concat(multipleHtmlPlugins),

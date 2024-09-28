@@ -12,12 +12,17 @@
     {
       "matches": ["<all_urls>"],
       "js": ["contentScript.js"],
-      "css": ["index.css"]
+      "css": ["index.css", "content-tailwind.css"]
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["screenshotcomponent.html", "index.css"],
+      "resources": [
+        "screenshotcomponent.html",
+        "index.css",
+        "videocomponent.html",
+        "content-tailwind.css"
+      ],
       "matches": ["<all_urls>"]
     }
   ],
@@ -32,6 +37,7 @@
     "scripting",
     "cookies",
     "http://localhost/*",
-    "tabCapture"
+    "tabCapture",
+    "downloads"
   ]
 }
