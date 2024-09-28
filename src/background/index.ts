@@ -4,7 +4,45 @@ import { parse } from "postcss";
 
 // API URL
 // const API_URL = "http://ec2-54-224-16-183.compute-1.amazonaws.com:7001/api";
-const API_URL = "http://localhost:5001/api";
+// const API_URL = "http://localhost:5001/api";
+const API_URL = "https://flagbox-be.onrender.com/api";
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  console.log("Taking screenshot message recieved", message);
+  if (
+    message.type === "take_screenshot" &&
+    message.x != undefined &&
+    message.y != undefined &&
+    message.width &&
+    message.height
+  ) {
+    chrome.tabs.captureVisibleTab(
+      //@ts-ignore
+      null,
+      { format: "png" },
+      async (dataUrl) => {
+        sendResponse({ response: dataUrl });
+      }
+    );
+  } else if (message.type == "upload_document" && message.dataUrl) {
+    if (message.includeFullScreen) {
+    } else {
+      createFlag(message.dataUrl, sender);
+    }
+  } else if (message.type == "loginpopup") {
+    chrome.tabs.create({
+      url: "https://www.flagbox.app/login",
+    });
+  } else if (message.type == "login" && message.email && message.password) {
+    const { email, password } = message;
+    sendResponse(login(email, password));
+  } else if (message.type == "remove_iframe") {
+    if (sender?.tab?.id)
+      chrome.tabs.sendMessage(sender?.tab?.id, { type: "remove_iframe" });
+  }
+
+  return true;
+});
 
 function blobToFile(theBlob: any, fileName: string) {
   theBlob.lastModifiedDate = new Date();
@@ -126,78 +164,16 @@ function getSystemData() {
   return obj;
 }
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log(
-    "Taking screenshot message recieved",
-    message,
-    message.type == "remove_iframe"
-  );
-  if (
-    message.type === "take_screenshot" &&
-    message.x != undefined &&
-    message.y != undefined &&
-    message.width &&
-    message.height
-  ) {
-    chrome.tabs.captureVisibleTab(
-      //@ts-ignore
-      null,
-      { format: "png" },
-      async (dataUrl) => {
-        const projects = await getUserProjects();
-        sendResponse({ response: dataUrl, projects: projects });
-      }
-    );
-  } else if (message.type === "record_video") {
-    chrome.tabCapture.capture(
-      {
-        video: true,
-        audio: true,
-      },
-      () => {}
-    );
-  } else if (message.type == "upload_document" && message.dataUrl) {
-    createFlag(
-      message.dataUrl,
-      message.title,
-      message.description,
-      message.fullscreenData,
-      message.projectId,
-      sender
-    );
-  } else if (message.type == "loginpopup") {
-    chrome.tabs.create({
-      url: "https://www.flagbox.app/login",
-    });
-  } else if (message.type == "login" && message.email && message.password) {
-    const { email, password } = message;
-    sendResponse(login(email, password));
-  } else if (message.type == "remove_iframe") {
-    if (sender?.tab?.id)
-      chrome.tabs.sendMessage(sender?.tab?.id, { type: "remove_iframe" });
-  }
-
-  return true;
-});
-
-function createFlag(
-  dataUrl: string,
-  title: string,
-  description: string,
-  fullscreenData: string,
-  projectId: string,
-  sender: any
-) {
+function createFlag(dataUrl: string, sender: any, fullscreenData?: string) {
   chrome.storage.local.get("token", (data) => {
     console.log("token 1", data);
     let token = data.token;
 
     const obj = getSystemData();
     const body = {
-      name: title || "New Bug Report #" + Math.floor(Math.random() * 1000),
-      description: description || null,
+      name: "New Bug Report #" + Math.floor(Math.random() * 1000),
+      description: null,
       systemData: obj,
-      projectId: parseInt(projectId),
     };
 
     fetch(API_URL + "/flag", {
@@ -214,7 +190,6 @@ function createFlag(
       .then((data) => {
         console.log("bug report", data);
         uploadDocument(data.id, dataUrl, token, sender);
-
         if (fullscreenData) {
           uploadDocument(data.id, fullscreenData, token, sender);
         }
