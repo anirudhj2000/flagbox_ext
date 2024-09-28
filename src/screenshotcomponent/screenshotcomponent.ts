@@ -14,6 +14,43 @@ function loadscreenshotcomponent() {
     if (data.section) {
       subtype = data.section;
     }
+
+    if (subtype == "multiple_section") {
+      const multiSelectDiv = document.getElementById("multi-select-div");
+      if (multiSelectDiv) {
+        multiSelectDiv.style.display = "flex";
+      }
+    }
+  });
+
+  document.getElementById("save-multi")?.addEventListener("click", () => {
+    const multiSelectDiv = document.getElementById("multi-select-div");
+    if (multiSelectDiv) {
+      multiSelectDiv.style.display = "none";
+    }
+
+    chrome.runtime.sendMessage(
+      {
+        type: "take_screenshot",
+        x: 0,
+        y: 0,
+        width: window.innerWidth,
+        height: window.innerHeight,
+        subtype: "multiple_section",
+      },
+      async function (response) {
+        console.log("called multiple section");
+        CreateBugReport(response.response, response.response, subtype);
+      }
+    );
+  });
+
+  document.getElementById("cancel-multi")?.addEventListener("click", () => {
+    const multiSelectDiv = document.getElementById("multi-select-div");
+    if (multiSelectDiv) {
+      multiSelectDiv.style.display = "none";
+    }
+    chrome.runtime.sendMessage({ type: "remove_iframe" });
   });
 
   function moveCursor(e: MouseEvent) {
@@ -48,7 +85,7 @@ function loadscreenshotcomponent() {
       box.style.top = startY + "px";
       box.style.width = endX - startX + "px";
       box.style.height = endY - startY + "px";
-      box.style.border = "1px dashed #cc6262";
+      box.style.border = "2px solid #cc6262";
       box.style.zIndex = "1202";
       box.style.backgroundColor = "transparent";
       document.body.appendChild(box);
@@ -71,10 +108,10 @@ function loadscreenshotcomponent() {
           if (response && response.response) {
             let dataUrl = await processImage(
               response.response,
-              startX + 2,
-              startY + 2,
-              endX - startX - 2,
-              endY - startY - 2
+              startX + 3,
+              startY + 3,
+              endX - startX - 3,
+              endY - startY - 3
             );
 
             document.body.style.backgroundColor = "#00000044";

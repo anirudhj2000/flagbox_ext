@@ -14,6 +14,18 @@
       class="w-full flex flex-col items-center justify-center"
     >
       <div
+        id="multi-select-div"
+        style="padding: 4px 8px; bottom: 8px; right: 8px; display: none"
+        class="fixed bg-white rounded-full flex-row justify-between gap-x-4"
+      >
+        <button style="color: black; font-size: 16px" id="cancel-multi ">
+          Cancel
+        </button>
+        <button style="color: red; font-family: 16px" id="save-multi">
+          Create Flag
+        </button>
+      </div>
+      <div
         id="modal"
         style="width: 60vw; padding: 16px; display: none; height: 70vh"
         class="flex-col items-start w-full h-full bg-white shadow-md"
