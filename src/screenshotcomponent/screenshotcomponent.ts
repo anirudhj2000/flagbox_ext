@@ -5,9 +5,16 @@ function loadscreenshotcomponent() {
   let endY = 0;
   let show = false;
 
-  let projects = [];
-
   document.addEventListener("mousemove", moveCursor);
+
+  let subtype = "single_section";
+
+  chrome.storage.local.get("section", (data) => {
+    console.log("section valala", data);
+    if (data.section) {
+      subtype = data.section;
+    }
+  });
 
   function moveCursor(e: MouseEvent) {
     const cursor = document.getElementById("cursor");
@@ -47,6 +54,10 @@ function loadscreenshotcomponent() {
       document.body.appendChild(box);
       console.log("stopDrawing", e, box);
 
+      if (subtype == "multiple_section") {
+        return;
+      }
+
       chrome.runtime.sendMessage(
         {
           type: "take_screenshot",
@@ -56,20 +67,8 @@ function loadscreenshotcomponent() {
           height: window.innerHeight,
         },
         async function (response) {
-          console.log("called");
-          console.log("pricess images called", response);
+          console.log("called single section");
           if (response && response.response) {
-            // processImage(
-            //   response.response,
-            //   0,
-            //   0,
-            //   window.innerWidth,
-            //   window.innerHeight
-            // );
-
-            const projects = response.projects;
-            console.log("projects", projects);
-
             let dataUrl = await processImage(
               response.response,
               startX + 2,
@@ -83,21 +82,16 @@ function loadscreenshotcomponent() {
             document.removeEventListener("mousedown", startDrawing);
             document.removeEventListener("mouseup", stopDrawing);
 
-            const projectSelect = document.getElementById("projects-select");
-            console.log("projectSelect", projectSelect);
-            if (projectSelect) {
-              projects.forEach((project: any) => {
-                const option = document.createElement("option");
-                option.value = project.id;
-                option.text = project.name;
-                projectSelect.appendChild(option);
-              });
-            }
-
-            const previewWindow = document.getElementById("preview-window");
+            const previewWindow = document.getElementById("modal");
             if (previewWindow) {
               previewWindow.style.display = "flex";
             }
+
+            const checkFullscreen = document.getElementById("check-fullscreen");
+            if (checkFullscreen) {
+              checkFullscreen.style.display = "flex";
+            }
+
             console.log("dataUrl abcd", dataUrl);
 
             const sectionBox = document.getElementById("section-box");
@@ -106,19 +100,23 @@ function loadscreenshotcomponent() {
             }
 
             document
-              .getElementById("preview-img")
+              .getElementById("screenshot-image")
               ?.setAttribute("src", dataUrl);
 
-            document.getElementById("save")?.addEventListener("click", () => {
-              CreateBugReport(dataUrl, response.response);
-            });
+            document
+              .getElementById("save-screenshot")
+              ?.addEventListener("click", () => {
+                CreateBugReport(dataUrl, response.response, subtype);
+              });
 
-            document.getElementById("cancel")?.addEventListener("click", () => {
-              if (previewWindow) {
-                previewWindow.style.display = "none";
-              }
-              chrome.runtime.sendMessage({ type: "remove_iframe" });
-            });
+            document
+              .getElementById("cancel-screenshot")
+              ?.addEventListener("click", () => {
+                if (previewWindow) {
+                  previewWindow.style.display = "none";
+                }
+                chrome.runtime.sendMessage({ type: "remove_iframe" });
+              });
 
             document
               .getElementById("close-preview")
@@ -137,40 +135,34 @@ function loadscreenshotcomponent() {
 
 loadscreenshotcomponent();
 
-function CreateBugReport(dataUrl: string, completeScreenshot?: string) {
-  let title = (
-    document.getElementById("preview-title-input") as HTMLInputElement
-  ).value;
+function CreateBugReport(
+  dataUrl: string,
+  completeScreenshot?: string,
+  subtype?: string
+) {
+  let includeFullScreen = false;
+  if (subtype == "single_section") {
+    includeFullScreen = (
+      document.getElementById("include-fullscreen") as HTMLInputElement
+    ).checked;
+  }
 
-  let description = (
-    document.getElementById("preview-description-textarea") as HTMLInputElement
-  ).value;
+  console.log("save button clicked", dataUrl);
 
-  let includeFullScreen = (
-    document.getElementById("include-fullscreen") as HTMLInputElement
-  ).checked;
-
-  const projectSelect = document.getElementById(
-    "projects-select"
-  ) as HTMLSelectElement;
-  const selectedProjectId = projectSelect.value;
-
-  console.log(
-    "save button clicked",
-    dataUrl,
-    title,
-    description,
-    includeFullScreen
-  );
-
-  chrome.runtime.sendMessage({
-    type: "upload_document",
-    dataUrl: dataUrl,
-    title,
-    description,
-    fullscreenData: includeFullScreen ? completeScreenshot : "",
-    projectId: selectedProjectId,
-  });
+  if (includeFullScreen) {
+    chrome.runtime.sendMessage({
+      type: "upload_document",
+      dataUrl: dataUrl,
+      includeFullScreen: true,
+      fullScreenData: completeScreenshot,
+    });
+  } else {
+    chrome.runtime.sendMessage({
+      type: "upload_document",
+      dataUrl: dataUrl,
+      includeFullScreen: false,
+    });
+  }
 }
 
 function blobToDataURL(blob: Blob, callback: (dataUrl: string) => void) {

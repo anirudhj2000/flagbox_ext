@@ -4,18 +4,28 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
-    <link rel="stylesheet" href="screenshotcomponent.css" />
+    <link rel="stylesheet" href="content-tailwind.css" />
+    <script src="screenshotcomponent.ts"></script>
   </head>
   <body>
-    <div id="cursor"></div>
-    <div class="containercomp">
-      <div id="preview-window" class="preview-window">
-        <div></div>
-        <div class="preview-image" id="preview-image">
-          <img id="preview-img" />
-        </div>
-        <div class="preview-data" id="preview-data">
-          <a id="close-preview">
+    <div
+      id="parent"
+      style="height: 100vh"
+      class="w-full flex flex-col items-center justify-center"
+    >
+      <div
+        id="modal"
+        style="width: 60vw; padding: 16px; display: none; height: 70vh"
+        class="flex-col items-start w-full h-full bg-white shadow-md"
+      >
+        <div class="flex flex-row items-center justify-between w-full">
+          <h1 style="font-size: 1.75rem" class="text-black font-bold">
+            Preview
+          </h1>
+          <a
+            id="close-preview"
+            style="height: 24px; width: 24px; color: black; cursor: pointer"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -30,37 +40,64 @@
               <line x1="6" y1="6" x2="18" y2="18"></line>
             </svg>
           </a>
+        </div>
 
-          <h2 id="newflag">New Flag</h2>
+        <div
+          id="screenshot"
+          style="border: 1px solid #c7c7c7; height: 50vh; margin-top: 8px"
+          class="w-full h-full flex flex-col items-center rounded-lg justify-center"
+        >
+          <img
+            id="screenshot-image"
+            style="
+              height: 100%;
+              width: 100%;
+              object-fit: contain;
+              background-color: #c7c7c7;
+            "
+          />
+        </div>
 
-          <form id="flag-form">
-            <div class="preview-title">
-              <label for="title">Title</label>
-              <input id="preview-title-input" />
-            </div>
+        <div
+          style="margin-top: 8px; display: none"
+          class="check-fullscreen gap-x-2"
+          id="check-fullscreen"
+        >
+          <input type="checkbox" id="include-fullscreen" />
+          <label style="font-size: 1rem" for="include-fullscreen"
+            >Include Complete Screen</label
+          >
+        </div>
 
-            <div class="preview-description">
-              <label for="description">Description</label>
-              <textarea id="preview-description-textarea"></textarea>
-            </div>
-          </form>
-
-          <div class="projects-dropdown" id="projects-dropdown">
-            <label for="description">Select Project</label>
-            <select id="projects-select">
-              <option disabled selected value="0">Select Project</option>
-            </select>
-          </div>
-
-          <div class="check-fullscreen" id="check-fullscreen">
-            <input type="checkbox" id="include-fullscreen" />
-            <label for="include-fullscreen">Include Complete Screen</label>
-          </div>
-
-          <div class="preview-buttons">
-            <button id="cancel">Cancel</button>
-            <button id="save">Save</button>
-          </div>
+        <div
+          id="buttons"
+          style="justify-content: flex-end"
+          class="flex flex-row items-center gap-x-4 mt-8 w-full"
+        >
+          <button
+            id="cancel-screenshot"
+            style="
+              padding: 8px 24px;
+              color: black;
+              border: 1px solid black;
+              font-size: 14px;
+            "
+            class="text-black font-bold rounded-lg"
+          >
+            Cancel
+          </button>
+          <button
+            id="save-screenshot"
+            style="
+              padding: 8px 24px;
+              color: white;
+              font-size: 14px;
+              background-color: firebrick;
+            "
+            class="font-bold py-2 px-4 rounded-lg"
+          >
+            Create Flag
+          </button>
         </div>
       </div>
     </div>
