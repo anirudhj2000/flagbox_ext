@@ -9,7 +9,8 @@ import { IoMdHelpCircleOutline } from "react-icons/io";
 
 const env = {
   IMAGE_URL: "https://d28exn2y7ee0u1.cloudfront.net/static",
-  LIVE_URL: "https://flagbox-ui.vercel.app",
+  // LIVE_URL: "https://flagbox-ui.vercel.app",
+  LIVE_URL: "http://localhost:5001",
 };
 
 const App = () => {
@@ -23,7 +24,7 @@ const App = () => {
       setCurrentTabUrl(currentTab?.url);
     });
 
-    chrome.cookies.getAll({ domain: "flagbox-ui.vercel.app" }, (cookies) => {
+    chrome.cookies.getAll({ domain: "localhost" }, (cookies) => {
       console.log("Cookies", cookies);
       let cookie = cookies.find((cookie) => cookie.name == "jwtToken");
 
