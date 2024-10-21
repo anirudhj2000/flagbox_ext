@@ -2,10 +2,12 @@
 
 import { parse } from "postcss";
 
+let mediaRecorder: any = null;
+let recordedChunks: Blob[] = [];
 // API URL
 // const API_URL = "http://ec2-54-224-16-183.compute-1.amazonaws.com:7001/api";
-// const API_URL = "http://localhost:5001/api";
-const API_URL = "https://flagbox-be.onrender.com/api";
+const API_URL = "http://localhost:5001/api";
+// const API_URL = "https://flagbox-be.onrender.com/api";
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log("Taking screenshot message recieved", message);
@@ -24,8 +26,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({ response: dataUrl });
       }
     );
+  } else if (message.type == "start_recording") {
   } else if (message.type == "upload_document" && message.dataUrl) {
     if (message.includeFullScreen) {
+      createFlag(message.dataUrl, sender, message.fullScreenData);
     } else {
       createFlag(message.dataUrl, sender);
     }
@@ -43,6 +47,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   return true;
 });
+
+function saveRecording(blobData: Blob | MediaSource) {
+  let url = URL.createObjectURL(blobData);
+  let a = document.createElement("a");
+  a.style.display = "none";
+  a.href = url;
+  a.download = "recording.webm";
+  document.body.appendChild(a);
+  a.click();
+  window.URL.revokeObjectURL(url);
+}
 
 function blobToFile(theBlob: any, fileName: string) {
   theBlob.lastModifiedDate = new Date();
@@ -159,21 +174,19 @@ function getSystemData() {
     vendor: navigator.vendor,
   };
 
-  console.log("System Data", obj);
-
   return obj;
 }
 
 function createFlag(dataUrl: string, sender: any, fullscreenData?: string) {
   chrome.storage.local.get("token", (data) => {
-    console.log("token 1", data);
     let token = data.token;
 
     const obj = getSystemData();
     const body = {
       name: "New Bug Report #" + Math.floor(Math.random() * 1000),
-      description: null,
+      description: "",
       systemData: obj,
+      flagType: "image",
     };
 
     fetch(API_URL + "/flag", {
@@ -188,10 +201,12 @@ function createFlag(dataUrl: string, sender: any, fullscreenData?: string) {
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log("bug report", data);
-        uploadDocument(data.id, dataUrl, token, sender);
+        if (data.error) {
+          throw new Error(data.error);
+        }
+        uploadDocument(data.id, dataUrl, token, sender, 1);
         if (fullscreenData) {
-          uploadDocument(data.id, fullscreenData, token, sender);
+          uploadDocument(data.id, fullscreenData, token, sender, 0);
         }
       })
       .catch((error) => {
@@ -212,15 +227,14 @@ const uploadDocument = (
   id: string,
   dataUrl: string,
   token: string,
-  sender: any
+  sender: any,
+  documentType: number
 ) => {
   const formData = new FormData();
   const file = dataURLtoFile(dataUrl, "screenshot.png");
   formData.append("document", file);
 
-  console.log("uploading document", id, formData, dataUrl, file, typeof file);
-
-  fetch(`${API_URL}/flag/uploadDocument/${id}`, {
+  fetch(`${API_URL}/flag/uploadDocument/${id}?documentType=${documentType}`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -234,6 +248,10 @@ const uploadDocument = (
         currentWindow: true,
       });
       chrome.tabs.sendMessage(sender?.tab?.id, { type: "remove_iframe" });
+      chrome.tabs.create({
+        url: "https://localhost:3201/home/flags/" + id,
+        active: true,
+      });
     })
     .catch((error) => {
       console.log("Upload failed", error);
@@ -311,7 +329,6 @@ function refreshToken(token: string) {
 function getUserProjects() {
   return new Promise((resolve, reject) => {
     chrome.storage.local.get("token", (data) => {
-      console.log("token 1", data);
       let token = data.token;
 
       fetch(API_URL + "/user/projects", {
@@ -323,7 +340,6 @@ function getUserProjects() {
       })
         .then((response) => response.json())
         .then((data) => {
-          console.log("projects", data);
           resolve(data);
         })
         .catch((error) => {

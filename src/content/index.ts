@@ -79,7 +79,11 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 
     console.log("iframe", iframe);
     document.body.appendChild(iframe);
-  } else if (message.type === "remove_iframe") {
+
+    chrome.storage.local.set({ section: "video_section" });
+  }
+
+  if (message.type === "remove_iframe") {
     const root = document.getRootNode();
     const iframe = document.getElementById("flagbox-iframe");
     console.log("root", root);
