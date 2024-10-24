@@ -21,7 +21,7 @@ module.exports = {
     background: "./src/background/index.ts",
     react: "./src/react/index.tsx",
     screenshotcomponent: "./src/screenshotcomponent/screenshotcomponent.ts",
-    videocomponent: "./src/videocomponent/videocomponent.ts",
+    videocomponent: "./src/videocomponent/index.tsx",
     loginscreen: "./src/loginscreen/loginscreen.ts",
   },
   output: {
@@ -50,10 +50,10 @@ module.exports = {
           ),
           to: path.resolve("dist"),
         },
-        {
-          from: path.resolve("src", "videocomponent", "videocomponent.css"),
-          to: path.resolve("dist"),
-        },
+        // {
+        //   from: path.resolve("src", "videocomponent", "videocomponent.css"),
+        //   to: path.resolve("dist"),
+        // },
         {
           from: path.resolve("src", "content-tailwind.css"),
           to: path.resolve("dist"),
