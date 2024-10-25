@@ -67,7 +67,7 @@ const App = () => {
     <div className="flex flex-col items-center justify-start w-[350px] h-full bg-white px-4 py-[16px]">
       <Navbar currentTabUrl={currentTabUrl} />
 
-      <div className=" flex flex-col items-center w-full mt-2">
+      <div className=" flex flex-col items-center w-full mt-4">
         {loggedIn ? (
           <Home />
         ) : (

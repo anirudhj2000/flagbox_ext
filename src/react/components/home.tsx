@@ -57,7 +57,7 @@ const Home = () => {
 
   return (
     <div className=" w-full flex flex-col items-start">
-      <div className=" flex flex-row w-full justify-between  py-2 px-4 bg-white border-[1px] rounded-full border-white">
+      <div className=" flex flex-row w-full justify-between  py-2 px-4 bg-red-50 border-[1px] rounded-full border-red-300">
         <button
           onClick={() =>
             handleOperation("take_screenshot", selectedSection.value)
@@ -83,7 +83,7 @@ const Home = () => {
 
       <button
         onClick={() => handleOperation("record_video")}
-        className=" flex w-full flex-row items-center justify-start mt-2 py-2 px-4 gap-x-4 bg-white border-[1px] rounded-full border-white"
+        className=" flex w-full flex-row items-center justify-start mt-4 py-2 px-4 gap-x-4 bg-red-50 border-[1px] rounded-full border-red-300"
       >
         <IoIosVideocam className=" text-red-600 text-xl" />
         <p className=" text-red-600 text-sm">Record Screen</p>

@@ -20,8 +20,8 @@ module.exports = {
     contentScript: "./src/content/index.ts",
     background: "./src/background/index.ts",
     react: "./src/react/index.tsx",
-    screenshotcomponent: "./src/screenshotcomponent/screenshotcomponent.ts",
-    videocomponent: "./src/videocomponent/index.tsx",
+    screenshotcomponent: "./src/screenshotcomponent/screenshotcomponent.tsx",
+    videocomponent: "./src/videocomponent/videocomponent.tsx",
     loginscreen: "./src/loginscreen/loginscreen.ts",
   },
   output: {
@@ -32,6 +32,8 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({
       template: "./src/index.html",
+      filename: "index.html",
+      chunks: ["contentScript", "background", "react", "loginscreen"],
     }),
 
     new CopyPlugin({
@@ -42,14 +44,14 @@ module.exports = {
           from: path.resolve("src", "loginscreen", "loginscreen.css"),
           to: path.resolve("dist"),
         },
-        {
-          from: path.resolve(
-            "src",
-            "screenshotcomponent",
-            "screenshotcomponent.css"
-          ),
-          to: path.resolve("dist"),
-        },
+        // {
+        //   from: path.resolve(
+        //     "src",
+        //     "screenshotcomponent",
+        //     "screenshotcomponent.css"
+        //   ),
+        //   to: path.resolve("dist"),
+        // },
         // {
         //   from: path.resolve("src", "videocomponent", "videocomponent.css"),
         //   to: path.resolve("dist"),
