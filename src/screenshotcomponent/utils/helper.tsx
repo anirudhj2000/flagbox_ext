@@ -56,7 +56,11 @@ export function processImage(
       canvas.height = scaledHeight;
       const ctx = canvas.getContext("2d");
 
-      ctx?.drawImage(
+      if (!ctx) return;
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+
+      ctx.drawImage(
         img,
         scaledX,
         scaledY,
