@@ -5,6 +5,7 @@ import { IoMdHelpCircleOutline } from "react-icons/io";
 import Section from "./components/Section";
 import SectionCapture from "./components/SectionCapture";
 import PreviewImage from "./components/PreviewImage";
+import { SectionProps } from "./utils/types";
 
 export const env = {
   IMAGE_URL: "https://d28exn2y7ee0u1.cloudfront.net/static",
@@ -13,7 +14,7 @@ export const env = {
 };
 
 interface PreviewInterface {
-  sectionDataUrl: Array<string>;
+  sectionDataUrl: Array<SectionProps>;
   dataUrl: string;
   type: string;
 }
@@ -28,7 +29,7 @@ const App = () => {
   });
 
   const handleOnCapture = (
-    sectionsData: Array<string>,
+    sectionsData: Array<SectionProps>,
     fullScreenData: string
   ) => {
     let previewObject = {
