@@ -1,19 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Editor from "./image-editor/editor";
 import { IoMdClose } from "react-icons/io";
-
-interface PreviewImageProps {
-  sectionDataUrl: Array<string>;
-  dataUrl: string;
-  type: string;
-  handleClose: () => void;
-}
-
-interface ImageObject {
-  url: string;
-  id: number;
-  type: string;
-}
+import { PreviewImageProps, ImageObject } from "../utils/types";
 
 const PreviewImage = ({
   sectionDataUrl,
@@ -29,9 +17,13 @@ const PreviewImage = ({
     let array: Array<ImageObject> = [];
     sectionDataUrl.map((item, index) => {
       let obj: ImageObject = {
-        url: item,
+        url: item.dataUrl,
         id: index + 1,
         type: "section",
+        x: item.x,
+        y: item.y,
+        width: item.width,
+        height: item.height,
       };
       array.push(obj);
     });
@@ -40,6 +32,10 @@ const PreviewImage = ({
       url: dataUrl,
       id: 0,
       type: "full",
+      x: 0,
+      y: 0,
+      width: window.innerWidth,
+      height: window.innerHeight,
     });
 
     setActiveImage(0);
@@ -50,7 +46,7 @@ const PreviewImage = ({
 
   return (
     <div className="h-screen w-screen bg-black/5 flex flex-col items-center justify-center">
-      <div className="w-[80vw] h-[80vh] relative flex flex-col items-start rounded-xl shadow-lg bg-white ">
+      <div className="w-[85vw] h-[85vh] relative flex flex-col items-start rounded-xl shadow-lg bg-white ">
         <div className="w-full h-[5vh] flex flex-row items-center border-b-[1px] border-gray-300 justify-between px-4">
           <p className=" text-red-500 text-2xl font-bold">Create Flag</p>
 
@@ -58,11 +54,15 @@ const PreviewImage = ({
             <IoMdClose className=" text-xl" />
           </button>
         </div>
-        <div className=" w-full flex flex-row justify-between items-center h-[75vh]">
+        <div className=" w-full flex flex-row justify-between items-center h-[80vh]">
           <div className=" flex flex-col items-center justify-center h-full w-8/12 border-r-[1px] border-gray-300">
-            <div className=" h-[62.5vh] w-full flex flex-col items-center justify-center border-b-[1px] border-gray-300">
+            <div className=" h-[70vh] w-full flex flex-col items-center justify-center border-b-[1px] border-gray-300">
               {imagesArray.length > 0 ? (
-                <Editor imageUrl={imagesArray[activeImage].url} />
+                <Editor
+                  width={imagesArray[activeImage].width}
+                  height={imagesArray[activeImage].height}
+                  imageUrl={imagesArray[activeImage].url}
+                />
               ) : (
                 ""
               )}

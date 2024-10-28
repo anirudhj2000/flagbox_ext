@@ -1,10 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Section from "./Section";
 import { processImage } from "../utils/helper";
-
-interface SectionCaptureInterface {
-  onCapture: (sectionsData: Array<string>, fullScreenData: string) => void;
-}
+import { SectionCaptureInterface, SectionProps } from "../utils/types";
 
 const SectionCapture = ({ onCapture }: SectionCaptureInterface) => {
   const [loading, setLoading] = useState(false);
@@ -127,7 +124,14 @@ const SectionCapture = ({ onCapture }: SectionCaptureInterface) => {
           );
 
           let sectionsData = [];
-          sectionsData.push(dataUrl);
+          let obj = {
+            dataUrl,
+            x,
+            y,
+            width,
+            height,
+          };
+          sectionsData.push(obj);
           onCapture(sectionsData, response?.response);
 
           //   console.log("Data URL single section capture", dataUrl);
