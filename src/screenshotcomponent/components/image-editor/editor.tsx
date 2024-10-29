@@ -13,7 +13,7 @@ import { HiMiniPencil } from "react-icons/hi2";
 import { PiBroomFill } from "react-icons/pi";
 
 
-const Editor = ({ imageUrl, width, height }: EditorProps) => {
+const Editor = ({ imageUrl, width, height, editing, handleEdit, handleSave }: EditorProps) => {
 
   const [loading, setLoading] = useState(true);
   const [editorState, setEditorState] = useState<EditorState>({
@@ -30,6 +30,17 @@ const Editor = ({ imageUrl, width, height }: EditorProps) => {
   const difRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
+
+  // useEffect(() => {
+  //   setSavedTexts(savedComments);
+  // }, [savedComments]);
+
+  // useEffect(() => {
+  //   if (imageHistory) {
+  //     setHistory(imageHistory);
+  //     setHistoryIndex(historyChangeCount)
+  //   }
+  // }, [imageHistory]);
 
   useEffect(() => {
     if (canvasRef.current) {
@@ -56,6 +67,16 @@ const Editor = ({ imageUrl, width, height }: EditorProps) => {
     });
   };
 
+  const saveImage = () => {
+    if (canvasRef.current) {
+      const link = document.createElement("a");
+      link.download = "edited-image.png";
+      handleSave && handleSave(canvasRef.current.toDataURL());
+      // link.href = canvasRef.current.toDataURL();
+      // link.click();
+    }
+  };
+
   const saveToHistory = () => {
     if (canvasRef.current && contextRef.current) {
       const imageData = contextRef.current.getImageData(
@@ -78,6 +99,7 @@ const Editor = ({ imageUrl, width, height }: EditorProps) => {
       if (canvasRef.current && contextRef.current) {
         contextRef.current.putImageData(history[historyIndex - 1], 0, 0);
       }
+      // saveHistory(history.slice(0, historyIndex), historyIndex - 1);
     }
   };
 
@@ -91,6 +113,7 @@ const Editor = ({ imageUrl, width, height }: EditorProps) => {
       );
       fetchImage();
       saveToHistory();
+      // saveHistory([], 0)
     }
   };
 
@@ -100,8 +123,10 @@ const Editor = ({ imageUrl, width, height }: EditorProps) => {
       if (canvasRef.current && contextRef.current) {
         contextRef.current.putImageData(history[historyIndex + 1], 0, 0);
       }
+      // saveHistory(history.slice(0, historyIndex + 1), historyIndex + 1);
     }
   };
+
 
   const fetchImage = () => {
     setLoading(true);
@@ -177,8 +202,6 @@ const Editor = ({ imageUrl, width, height }: EditorProps) => {
   }
 
 
-
-
   useEffect(() => {
     if (!imageUrl) {
       return;
@@ -188,42 +211,52 @@ const Editor = ({ imageUrl, width, height }: EditorProps) => {
 
   return (
     <div ref={difRef} className="w-full h-full flex flex-col items-center justify-center ">
-      <div className=" h-[7.5%] w-full flex flex-row items-center justify-center  px-4">
+      {
+        editing ? <div className=" h-[7.5%] w-full flex flex-row items-center justify-center  px-4">
 
 
-        <div className=" flex flex-row gap-x-4 px-8 py-2 bg-red-100 rounded-full tems-center">
-          <button className={`${activeTool === "pen" ? "bg-white rounded-full " : ""}`} onClick={() => {
-            setActiveTool("pen")
-            setEditorState({ ...editorState, tool: "pen" })
-          }}>
+          <div className=" flex flex-row gap-x-4 px-8 py-2 bg-red-100 rounded-full tems-center">
+            <button className={`${activeTool === "pen" ? "bg-white rounded-full " : ""}`} onClick={() => {
+              setActiveTool("pen")
+              setEditorState({ ...editorState, tool: "pen" })
+            }}>
+              <HiMiniPencil className=" text-gray-600 text-xl" />
+            </button>
+            <button className={`${activeTool === "text" ? "bg-white rounded-full" : ""}`} onClick={() => {
+              setActiveTool("text")
+              setEditorState({ ...editorState, tool: "text" })
+            }}>
+              <PiTextT className="  text-gray-600 text-xl" />
+            </button>
+            <button className={`${activeTool === "blur" ? "bg-white rounded-full" : ""}`} onClick={() => {
+              setActiveTool("blur")
+              setEditorState({ ...editorState, tool: "blur" })
+            }}>
+              <MdOutlineBlurOn className=" text-gray-600 text-xl" />
+            </button>
+            <button onClick={undo}>
+              <LuUndo2 className=" text-gray-600 text-xl" />
+            </button>
+            <button onClick={redo}>
+              <LuRedo2 className=" text-gray-600 text-xl" />
+            </button>
+            <button onClick={clear}>
+              <PiBroomFill className=" text-gray-600 text-xl" />
+            </button>
+          </div>
+        </div> : <div className=" h-[7.5%] w-full flex flex-row items-center justify-center  px-4">
+          <button onClick={() => {
+            handleEdit(true)
+          }} className=" flex flex-row items-center px-4 py-2 bg-gray-200 rounded-xl">
             <HiMiniPencil className=" text-gray-600 text-xl" />
-          </button>
-          <button className={`${activeTool === "text" ? "bg-white rounded-full" : ""}`} onClick={() => {
-            setActiveTool("text")
-            setEditorState({ ...editorState, tool: "text" })
-          }}>
-            <PiTextT className="  text-gray-600 text-xl" />
-          </button>
-          <button className={`${activeTool === "blur" ? "bg-white rounded-full" : ""}`} onClick={() => {
-            setActiveTool("blur")
-            setEditorState({ ...editorState, tool: "blur" })
-          }}>
-            <MdOutlineBlurOn className=" text-gray-600 text-xl" />
-          </button>
-          <button onClick={undo}>
-            <LuUndo2 className=" text-gray-600 text-xl" />
-          </button>
-          <button onClick={redo}>
-            <LuRedo2 className=" text-gray-600 text-xl" />
-          </button>
-          <button onClick={clear}>
-            <PiBroomFill className=" text-gray-600 text-xl" />
+            <p className=" text-gray-600 font-semibold text-sm ml-2">Edit Image</p>
           </button>
         </div>
-      </div>
+      }
+
       <div id="canvas-container" className=" relative h-[92.5%] w-full flex flex-col items-center justify-center">
         <canvas ref={canvasRef} id="canvas" className=" bg-black" />
-        {editorState.tool === "pen" && !loading ? (
+        {editorState.tool === "pen" && !loading && editing ? (
           <PenTool
             canvas={canvasRef.current}
             context={contextRef.current}
@@ -232,7 +265,7 @@ const Editor = ({ imageUrl, width, height }: EditorProps) => {
             onDraw={saveToHistory}
           />
         ) : null}
-        {editorState.tool === "text" && !loading ? (
+        {editorState.tool === "text" && !loading && editing ? (
           <TextTool
             canvas={canvasRef.current}
             context={contextRef.current}
@@ -250,7 +283,7 @@ const Editor = ({ imageUrl, width, height }: EditorProps) => {
           // onDraw={saveToHistory}
           />
         ) : null}
-        {editorState.tool === "blur" && !loading ? (
+        {editorState.tool === "blur" && !loading && editing ? (
           <BlurTool
             canvas={canvasRef.current}
             context={contextRef.current}
@@ -321,6 +354,8 @@ const Editor = ({ imageUrl, width, height }: EditorProps) => {
           </div>
         ))}
       </div>
+
+
     </div>
   );
 };

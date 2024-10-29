@@ -21,7 +21,7 @@ const takeScreenshot = async (section: string) => {
   const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
   const tab = tabs[0];
   chrome.tabs.sendMessage(tab.id || 0, {
-    type: "take_screenshot",
+    type: "take_screenshot_ext",
     subtype: section,
   });
 };

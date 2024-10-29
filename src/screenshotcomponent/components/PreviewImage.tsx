@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from "react";
 import Editor from "./image-editor/editor";
 import { IoMdClose } from "react-icons/io";
-import { PreviewImageProps, ImageObject } from "../utils/types";
+import { PreviewImageProps, ImageObject, TextToolInterface } from "../utils/types";
+import axios from "axios";
+import { useForm } from "react-hook-form";
+import Spinner from "../utils/spinner";
+
+const API_URL = "http://localhost:5001/api";
 
 const PreviewImage = ({
   sectionDataUrl,
@@ -12,21 +17,107 @@ const PreviewImage = ({
   const [loading, setLoading] = useState(true);
   const [imagesArray, setImagesArray] = useState<Array<ImageObject>>([]);
   const [activeImage, setActiveImage] = useState(0);
+  const [editing, setEditing] = useState(false);
+  const [workspaces, setWorkspaces] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [token, setToken] = useState("");
+  const [activeWorkspace, setActiveWorkspace] = useState("");
+  const [includeFullscreen, setIncludeFullscreen] = useState(false);
+
+
+  const {
+    register,
+    handleSubmit,
+    getValues,
+    formState: { errors },
+    watch
+  } = useForm({
+    defaultValues: {
+      title: "",
+      description: "",
+      workspace: "",
+      project: ""
+    }
+  });
+
+  const onSubmit = (data: any) => {
+
+    let obj = {
+      title: data.title,
+      description: data.description,
+      project: data.project,
+      dataUrl: imagesArray[1].finalDataUrl,
+    }
+  };
 
   useEffect(() => {
-    let array: Array<ImageObject> = [];
-    sectionDataUrl.map((item, index) => {
-      let obj: ImageObject = {
-        url: item.dataUrl,
-        id: index + 1,
-        type: "section",
-        x: item.x,
-        y: item.y,
-        width: item.width,
-        height: item.height,
+    if (activeWorkspace) {
+      getProjects(activeWorkspace);
+    }
+  }, [activeWorkspace])
+
+
+  const handleSave = (dataUrl: string) => {
+    let array = [...imagesArray];
+    array[activeImage].finalDataUrl = dataUrl;
+    setImagesArray([...array]);
+  };
+
+  const getUserWorkspace = (token: string) => {
+    axios.get(API_URL + `/user/workspaces`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }).then((response) => {
+      setWorkspaces(response.data);
+      console.log("workspace", response.data);
+    }).catch((error) => {
+      console.log(error);
+    })
+  }
+
+  const getProjects = (workspaceId: string) => {
+    axios.get(API_URL + `/workspaces/${workspaceId}/projects`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }).then((response) => {
+      setProjects(response.data);
+      console.log("projects", response.data);
+    }).catch((error) => {
+      console.log(error);
+    })
+  }
+
+  useEffect(() => {
+    setLoading(true);
+    chrome.storage.local.get("token", (data) => {
+      if (data.token) {
+        getUserWorkspace(data.token);
+        setToken(data.token);
       };
-      array.push(obj);
-    });
+    })
+
+
+    let array: Array<ImageObject> = [];
+    if (sectionDataUrl) {
+      sectionDataUrl.map((item, index) => {
+        let obj: ImageObject = {
+          url: item.dataUrl,
+          id: index + 1,
+          type: "section",
+          x: item.x,
+          y: item.y,
+          width: item.width,
+          height: item.height,
+          imageHistory: [],
+          savedComments: [],
+          historyIndex: 0,
+          finalDataUrl: item.dataUrl
+        };
+        array.push(obj);
+      });
+    }
 
     array.push({
       url: dataUrl,
@@ -36,13 +127,28 @@ const PreviewImage = ({
       y: 0,
       width: window.innerWidth,
       height: window.innerHeight,
+      imageHistory: [],
+      savedComments: [],
+      historyIndex: 0,
+      finalDataUrl: dataUrl
     });
 
     setActiveImage(0);
-
     console.log("array", array);
     setImagesArray([...array]);
+
+    setLoading(false);
   }, [type]);
+
+  if (loading) {
+    return (
+      <div className="h-screen w-screen bg-black/5 flex flex-col items-center justify-center">
+        <Spinner loading={loading} height={50} width={50} color="#fd6262" />
+      </div>
+    )
+  }
+
+
 
   return (
     <div className="h-screen w-screen bg-black/5 flex flex-col items-center justify-center">
@@ -55,13 +161,16 @@ const PreviewImage = ({
           </button>
         </div>
         <div className=" w-full flex flex-row justify-between items-center h-[80vh]">
-          <div className=" flex flex-col items-center justify-center h-full w-9/12 border-r-[1px] border-gray-300">
+          <div className=" flex flex-col items-center justify-center h-full w-8/12 border-r-[1px] border-gray-300">
             <div className=" h-[70vh] w-full flex flex-col items-center justify-center border-b-[1px] border-gray-300">
               {imagesArray.length > 0 ? (
                 <Editor
                   width={imagesArray[activeImage].width}
                   height={imagesArray[activeImage].height}
                   imageUrl={imagesArray[activeImage].url}
+                  editing={editing}
+                  handleEdit={(edit) => setEditing(edit)}
+                  handleSave={handleSave}
                 />
               ) : (
                 ""
@@ -77,11 +186,10 @@ const PreviewImage = ({
                   >
                     <img
                       key={index}
-                      className={`${
-                        activeImage == index
-                          ? "border-[1px] border-[#EB0D0D]"
-                          : ""
-                      }
+                      className={`${activeImage == index
+                        ? "border-[1px] border-[#EB0D0D]"
+                        : ""
+                        }
                       w-[10vh] h-[10vh]`}
                       style={{
                         objectFit: "contain",
@@ -90,11 +198,13 @@ const PreviewImage = ({
                     />
 
                     {item.type == "full" ? (
-                      <p className="text-[#EB0D0D] text-sm font-semibold">
-                        Full screen
-                      </p>
+                      <div>
+                        <p className="text-[#EB0D0D] text-xs font-semibold">
+                          Full screen
+                        </p>
+                      </div>
                     ) : (
-                      <p className="text-[#EB0D0D] text-sm font-semibold">
+                      <p className="text-[#EB0D0D] text-xs font-semibold">
                         Section {item.id}
                       </p>
                     )}
@@ -103,7 +213,132 @@ const PreviewImage = ({
               })}
             </div>
           </div>
-          <div className=" flex flex-col items-center justify-center w-3/12"></div>
+          <div className=" flex flex-col items-center justify-center h-full w-4/12 py-4">
+            {
+              !loading ?
+                <form
+                  onSubmit={handleSubmit(onSubmit)}
+                  className=" w-full h-full flex flex-col items-center justify-start mt-4 px-4"
+                >
+                  <div className=" flex flex-col items-start w-full">
+                    <label
+                      className=" text-red-500 text-lg font-semibold"
+                    >
+                      Title
+                    </label>
+                    <input
+                      id="title"
+                      type="text"
+                      {...register("title", { required: true })}
+                      className=" w-full rounded-lg text-lg py-1 border-[1px] border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 px-3"
+                      placeholder="Enter title"
+                    />
+                    {
+                      errors.title && (
+                        <p className=" text-red-500 text-xs font-semibold">
+                          {errors.title.message}
+                        </p>
+                      )
+                    }
+                  </div>
+
+                  <div className=" flex flex-col items-start w-full mt-4">
+                    <label
+
+                      className=" text-red-500 text-lg font-semibold"
+                    >
+                      Description
+                    </label>
+                    <textarea
+                      id="description"
+                      {...register("description", { required: true })}
+                      className=" w-full h-[10vh] text-lg py-1 rounded-lg border-[1px] border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 px-3"
+                      placeholder="Enter description"
+                    />
+                    {
+                      errors.description && (
+                        <p className=" text-red-500 text-xs font-semibold">
+                          {errors.description.message}
+                        </p>
+                      )
+                    }
+                  </div>
+
+                  <div className=" flex flex-col items-start w-full mt-4">
+                    <label
+
+                      className=" text-red-500 text-lg font-semibold"
+                    >
+                      Workspace
+                    </label>
+                    <select
+                      id="workspace"
+                      {...register("workspace", { required: true })}
+                      onChange={(e) => setActiveWorkspace(e.target.value)}
+                      className=" w-full rounded-lg text-lg py-1 border-[1px] border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 px-3"
+                    >
+                      <option selected disabled value="">Select Workspace</option>
+                      {
+                        workspaces.map((item: any, index) => {
+                          return (
+                            <option key={index} value={item.id}>{item.name}</option>
+                          )
+                        })
+                      }
+                    </select>
+                    {
+                      errors.workspace && (
+                        <p className=" text-red-500 text-xs font-semibold">
+                          {errors.workspace.message}
+                        </p>
+                      )
+                    }
+                  </div>
+
+                  <div className=" flex flex-col items-start w-full mt-4">
+                    <label
+                      className=" text-red-500 text-lg font-semibold"
+                    >
+                      Project
+                    </label>
+                    <select
+                      id="project"
+                      {...register("project", { required: true })}
+                      className=" w-full rounded-lg text-lg py-1 border-[1px] border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 px-3"
+                    >
+                      <option selected disabled value="">Select project</option>
+                      {
+                        projects.map((item: any, index) => {
+                          return (
+                            <option key={index} value={item.id}>{item.name}</option>
+                          )
+                        })
+                      }
+                    </select>
+                    {
+                      errors.project && (
+                        <p className=" text-red-500 text-xs font-semibold">
+                          {errors.project.message}
+                        </p>
+                      )
+                    }
+                  </div>
+
+                  <button
+
+                    type="submit"
+                    className=" w-full py-2 rounded-lg border-[1px]  bg-red-500 text-white border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 px-3 mt-4"
+                  >
+                    Save
+                  </button>
+
+                </form> :
+                <div className=" w-full h-full flex flex-col items-center justify-center">
+                  <Spinner loading={loading} width={12} height={24} color="#fd6262" />
+                </div>
+            }
+
+          </div>
         </div>
       </div>
     </div>

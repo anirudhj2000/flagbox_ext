@@ -42,6 +42,7 @@ const App = () => {
   };
 
   const handleClose = () => {
+    console.log("closing");
     chrome.runtime.sendMessage({ type: "remove_iframe" });
   };
 
@@ -50,15 +51,31 @@ const App = () => {
     chrome.storage.local.get("section", (data) => {
       console.log("section", data.section);
       setType(data.section);
+
+      if (data.section == "fullscreen") {
+        console.log("fullscreen");
+        chrome.storage.local.get("dataUrl", (data) => {
+          console.log("dataUrl fullscreen", data.dataUrl);
+          setPreviewObject({
+            sectionDataUrl: [],
+            dataUrl: data.dataUrl,
+            type: "fullscreen",
+          });
+        });
+
+      }
+
       setLoading(false);
     });
+
+
   }, []);
 
   return (
     <div className="flex flex-col items-center justify-start w-screen h-screen bg-transparent px-4 py-[16px]">
       {type == "single_section" ? (
         <SectionCapture onCapture={handleOnCapture} />
-      ) : type == "edit" ? (
+      ) : type == "edit" || type == "fullscreen" ? (
         <PreviewImage
           sectionDataUrl={preivewObject.sectionDataUrl}
           dataUrl={preivewObject.dataUrl}
