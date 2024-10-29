@@ -34,3 +34,19 @@ export interface SectionCaptureInterface {
     fullScreenData: string
   ) => void;
 }
+
+export interface EditorState {
+  tool: "pen" | "text" | "blur";
+  color: string;
+  size: number;
+  font: string;
+  blurIntensity: number;
+}
+
+export interface TextToolInterface {
+  x: number;
+  y: number;
+  text: string;
+  hovered: boolean;
+  id?: string;
+}
