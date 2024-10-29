@@ -55,7 +55,7 @@ const PreviewImage = ({
           </button>
         </div>
         <div className=" w-full flex flex-row justify-between items-center h-[80vh]">
-          <div className=" flex flex-col items-center justify-center h-full w-8/12 border-r-[1px] border-gray-300">
+          <div className=" flex flex-col items-center justify-center h-full w-9/12 border-r-[1px] border-gray-300">
             <div className=" h-[70vh] w-full flex flex-col items-center justify-center border-b-[1px] border-gray-300">
               {imagesArray.length > 0 ? (
                 <Editor
@@ -103,7 +103,7 @@ const PreviewImage = ({
               })}
             </div>
           </div>
-          <div className=" flex flex-col items-center justify-center w-4/12"></div>
+          <div className=" flex flex-col items-center justify-center w-3/12"></div>
         </div>
       </div>
     </div>
