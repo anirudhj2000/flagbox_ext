@@ -2,10 +2,18 @@ export interface EditorProps {
   imageUrl: string;
   width: number;
   height: number;
+  editing: boolean;
+  handleEdit: (edit: boolean) => void;
+  handleSave: (dataUrl: string) => void;
+  // imageHistory: ImageData[];
+  // savedComments: Array<TextToolInterface>;
+  // historyChangeCount: number
+  // saveHistory: (data: ImageData[], index: number) => void;
+  // saveComments: (data: Array<TextToolInterface>) => void;
 }
 
 export interface PreviewImageProps {
-  sectionDataUrl: Array<SectionProps>;
+  sectionDataUrl: Array<SectionProps> | null;
   dataUrl: string;
   type: string;
   handleClose: () => void;
@@ -19,6 +27,10 @@ export interface ImageObject {
   y: number;
   width: number;
   height: number;
+  imageHistory: ImageData[];
+  savedComments: Array<TextToolInterface>;
+  historyIndex: number
+  finalDataUrl: string;
 }
 
 export interface SectionProps {
