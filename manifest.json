@@ -38,6 +38,7 @@
     "cookies",
     "http://localhost/*",
     "tabCapture",
-    "downloads"
+    "downloads",
+    "tabCapture"
   ]
 }

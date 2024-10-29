@@ -22,7 +22,7 @@ module.exports = {
     react: "./src/react/index.tsx",
     screenshotcomponent: "./src/screenshotcomponent/screenshotcomponent.tsx",
     videocomponent: "./src/videocomponent/videocomponent.tsx",
-    loginscreen: "./src/loginscreen/loginscreen.ts",
+    loginscreen: "./src/loginscreen/loginscreen.tsx",
   },
   output: {
     path: path.resolve(__dirname, "dist"),
