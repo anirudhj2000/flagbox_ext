@@ -10,7 +10,7 @@ const API_URL = "http://localhost:5001/api";
 // const API_URL = "https://flagbox-be.onrender.com/api";
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log("Taking screenshot message recieved", message);
+  console.log("Taking screenshot message recieved", message, sender);
   if (
     message.type === "take_screenshot" &&
     message.x != undefined &&
@@ -29,9 +29,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   } else if (message.type == "start_recording") {
   } else if (message.type == "upload_document" && message.dataUrl) {
     if (message.includeFullScreen) {
-      createFlag(message.dataUrl, sender, message.fullScreenData);
+      createFlag(
+        message.title,
+        message.description,
+        message.projectId,
+        message.dataUrl,
+        sender,
+        message.fullScreenData
+      );
     } else {
-      createFlag(message.dataUrl, sender);
+      createFlag(
+        message.title,
+        message.description,
+        message.projectId,
+        message.dataUrl,
+        sender
+      );
     }
   } else if (message.type == "loginpopup") {
     chrome.tabs.create({
@@ -177,7 +190,14 @@ function getSystemData() {
   return obj;
 }
 
-function createFlag(dataUrl: string, sender: any, fullscreenData?: string) {
+function createFlag(
+  title: string,
+  description: string,
+  projectId: string,
+  dataUrl: string,
+  sender: any,
+  fullscreenData?: string
+) {
   chrome.storage.local.get("token", (data) => {
     let token = data.token;
 

@@ -12,7 +12,7 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   console.log("Content Script Message Listener", message);
   removeIframe();
 
-  if (message.type == "take_screenshot") {
+  if (message.type == "take_screenshot_ext") {
     if (message.subtype === "fullscreen") {
       chrome.runtime.sendMessage(
         {
@@ -24,42 +24,50 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
           subtype: "fullscreen",
         },
         async function (response) {
-          console.log("called");
           console.log("fullscreen images called", response);
           if (response && response.response) {
-            chrome.runtime.sendMessage({
-              type: "upload_document",
+            const iframe = document.createElement("iframe");
+            iframe.style.position = "fixed";
+            iframe.style.right = "0";
+            iframe.style.bottom = "0";
+            iframe.style.width = "100vw";
+            iframe.style.height = "100vh";
+            iframe.style.border = "none";
+            iframe.style.overflow = "hidden";
+            iframe.style.backgroundColor = "transparent";
+
+            iframe.src = chrome.runtime.getURL("screenshotcomponent.html");
+            iframe.id = "flagbox-iframe";
+            document.body.appendChild(iframe);
+
+            chrome.storage.local.set({
+              section: "fullscreen",
               dataUrl: response.response,
             });
           }
         }
       );
-
-      return;
     }
 
-    const iframe = document.createElement("iframe");
-    iframe.src = chrome.runtime.getURL("screenshotcomponent.html");
-    iframe.style.position = "fixed";
-    iframe.style.right = "0";
-    iframe.style.bottom = "0";
-    iframe.style.width = "100vw";
-    iframe.style.height = "100vh";
-    iframe.style.border = "none";
-    iframe.style.border = "1px dashed #fa7d7d";
-    iframe.style.zIndex = "9999999";
-    iframe.style.backgroundColor = "transparent";
-    iframe.style.cursor = "crosshair";
-    iframe.style.overflow = "hidden";
-    iframe.scrolling = "no";
-    iframe.id = "flagbox-iframe";
+    if (message.subtype == "single_section") {
+      const iframe = document.createElement("iframe");
+      iframe.src = chrome.runtime.getURL("screenshotcomponent.html");
+      iframe.style.position = "fixed";
+      iframe.style.right = "0";
+      iframe.style.bottom = "0";
+      iframe.style.width = "100vw";
+      iframe.style.height = "100vh";
+      iframe.style.border = "none";
+      iframe.style.border = "1px dashed #fa7d7d";
+      iframe.style.zIndex = "9999999";
+      iframe.style.backgroundColor = "transparent";
+      iframe.style.cursor = "crosshair";
+      iframe.style.overflow = "hidden";
+      iframe.scrolling = "no";
+      iframe.id = "flagbox-iframe";
 
-    document.body.appendChild(iframe);
-
-    if (message.subtype === "single_section") {
+      document.body.appendChild(iframe);
       chrome.storage.local.set({ section: "single_section" });
-    } else if (message.subtype === "multiple_section") {
-      chrome.storage.local.set({ section: "multiple_section" });
     }
   }
 
