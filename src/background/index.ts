@@ -27,6 +27,52 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
     );
   } else if (message.type == "start_recording") {
+    if (sender.tab) {
+      // chrome.desktopCapture.chooseDesktopMedia(
+      //   ["screen", "window", "tab"],
+      //   sender.tab,
+      //   (streamId) => {
+      //     navigator.mediaDevices
+      //       .getDisplayMedia({
+      //         video: true,
+      //         audio: true,
+      //       })
+      //       .then((stream) => {
+      //         mediaRecorder = new MediaRecorder(stream);
+      //         mediaRecorder.ondataavailable = handleDataAvailable;
+      //         mediaRecorder.start();
+      //       });
+      //   }
+      // );
+      chrome.tabCapture.getMediaStreamId(
+        { targetTabId: sender.tab.id },
+        (stream) => {
+          if (stream) {
+            navigator.mediaDevices
+              .getDisplayMedia({
+                video: true,
+                audio: true,
+              })
+              .then((stream) => {
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.ondataavailable = handleDataAvailable;
+                mediaRecorder.start();
+              });
+          }
+        }
+      );
+    }
+  } else if (message.type == "stop_recording") {
+    mediaRecorder.stop();
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(recordedChunks, { type: "video/webm" });
+      const url = URL.createObjectURL(blob);
+      chrome.downloads.download({ url, filename: "recorded-video.webm" });
+      recordedChunks = [];
+
+      if (sender?.tab?.id)
+        chrome.tabs.sendMessage(sender?.tab?.id, { type: "remove_iframe" });
+    };
   } else if (message.type == "upload_document" && message.dataUrl) {
     if (message.includeFullScreen) {
       createFlag(
@@ -60,6 +106,29 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   return true;
 });
+
+function handleDataAvailable(event: BlobEvent): void {
+  console.log("Data available", event);
+  if (event.data.size > 0) {
+    recordedChunks.push(event.data);
+  }
+}
+
+function downloadRecording(): void {
+  console.log("Download recording");
+  const blob = new Blob(recordedChunks, {
+    type: "video/webm",
+  });
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "screen-recording.webm";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url); // Clean up
+}
 
 function saveRecording(blobData: Blob | MediaSource) {
   let url = URL.createObjectURL(blobData);
