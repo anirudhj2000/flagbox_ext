@@ -9,7 +9,7 @@ let recordedChunks: Blob[] = [];
 const API_URL = "http://localhost:5001/api";
 // const API_URL = "https://flagbox-be.onrender.com/api";
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   console.log("Taking screenshot message recieved", message, sender);
   if (
     message.type === "take_screenshot" &&
@@ -26,54 +26,83 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({ response: dataUrl });
       }
     );
-  } else if (message.type == "start_recording") {
-    if (sender.tab) {
-      // chrome.desktopCapture.chooseDesktopMedia(
-      //   ["screen", "window", "tab"],
-      //   sender.tab,
-      //   (streamId) => {
-      //     navigator.mediaDevices
-      //       .getDisplayMedia({
-      //         video: true,
-      //         audio: true,
-      //       })
-      //       .then((stream) => {
-      //         mediaRecorder = new MediaRecorder(stream);
-      //         mediaRecorder.ondataavailable = handleDataAvailable;
-      //         mediaRecorder.start();
-      //       });
-      //   }
-      // );
-      chrome.tabCapture.getMediaStreamId(
-        { targetTabId: sender.tab.id },
-        (stream) => {
-          if (stream) {
-            navigator.mediaDevices
-              .getDisplayMedia({
-                video: true,
-                audio: true,
-              })
-              .then((stream) => {
-                mediaRecorder = new MediaRecorder(stream);
-                mediaRecorder.ondataavailable = handleDataAvailable;
-                mediaRecorder.start();
-              });
-          }
-        }
-      );
-    }
-  } else if (message.type == "stop_recording") {
-    mediaRecorder.stop();
-    mediaRecorder.onstop = () => {
-      const blob = new Blob(recordedChunks, { type: "video/webm" });
-      const url = URL.createObjectURL(blob);
-      chrome.downloads.download({ url, filename: "recorded-video.webm" });
-      recordedChunks = [];
+  } else if (message.command == "startRecording") {
+    console.log("startRecording");
 
-      if (sender?.tab?.id)
-        chrome.tabs.sendMessage(sender?.tab?.id, { type: "remove_iframe" });
-    };
-  } else if (message.type == "upload_document" && message.dataUrl) {
+    const existingContexts = await chrome.runtime.getContexts({});
+    let recording = false;
+
+    const offscreenDocument = existingContexts.find(
+      (c) => c.contextType === "OFFSCREEN_DOCUMENT"
+    );
+
+    console.log("offscreenDocument", offscreenDocument);
+
+    // Ensure the offscreen document exists
+    if (!offscreenDocument) {
+      await chrome.offscreen.createDocument({
+        url: "offscreen.html",
+        reasons: ["USER_MEDIA" as chrome.offscreen.Reason],
+        justification: "Screen recording in the background",
+      });
+    }
+
+    chrome.runtime.sendMessage({ command: "startRecording" });
+  } else if (message.command == "stopRecording") {
+    console.log("stopRecording");
+
+    chrome.runtime.sendMessage({ command: "stopRecording" });
+  }
+
+  // else if (message.type == "start_recording") {
+  //   if (sender.tab) {
+  //     // chrome.desktopCapture.chooseDesktopMedia(
+  //     //   ["screen", "window", "tab"],
+  //     //   sender.tab,
+  //     //   (streamId) => {
+  //     //     navigator.mediaDevices
+  //     //       .getDisplayMedia({
+  //     //         video: true,
+  //     //         audio: true,
+  //     //       })
+  //     //       .then((stream) => {
+  //     //         mediaRecorder = new MediaRecorder(stream);
+  //     //         mediaRecorder.ondataavailable = handleDataAvailable;
+  //     //         mediaRecorder.start();
+  //     //       });
+  //     //   }
+  //     // );
+  //     chrome.tabCapture.getMediaStreamId(
+  //       { targetTabId: sender.tab.id },
+  //       (stream) => {
+  //         if (stream) {
+  //           navigator.mediaDevices
+  //             .getDisplayMedia({
+  //               video: true,
+  //               audio: true,
+  //             })
+  //             .then((stream) => {
+  //               mediaRecorder = new MediaRecorder(stream);
+  //               mediaRecorder.ondataavailable = handleDataAvailable;
+  //               mediaRecorder.start();
+  //             });
+  //         }
+  //       }
+  //     );
+  //   }
+  // } else if (message.type == "stop_recording") {
+  //   mediaRecorder.stop();
+  //   mediaRecorder.onstop = () => {
+  //     const blob = new Blob(recordedChunks, { type: "video/webm" });
+  //     const url = URL.createObjectURL(blob);
+  //     chrome.downloads.download({ url, filename: "recorded-video.webm" });
+  //     recordedChunks = [];
+
+  //     if (sender?.tab?.id)
+  //       chrome.tabs.sendMessage(sender?.tab?.id, { type: "remove_iframe" });
+  //   };
+  // }
+  else if (message.type == "upload_document" && message.dataUrl) {
     if (message.includeFullScreen) {
       createFlag(
         message.title,
@@ -135,7 +164,7 @@ function saveRecording(blobData: Blob | MediaSource) {
   let a = document.createElement("a");
   a.style.display = "none";
   a.href = url;
-  a.download = "recording.webm";
+  a.download = "recording1.webm";
   document.body.appendChild(a);
   a.click();
   window.URL.revokeObjectURL(url);
@@ -302,9 +331,6 @@ function createFlag(
         if (error.status == 401) {
           chrome.storage.local.remove("token", () => {
             console.log("Token removed");
-            chrome.tabs.create({
-              url: chrome.runtime.getURL("loginscreen.html"),
-            });
           });
         }
         console.log("error", JSON.stringify(error));
@@ -435,12 +461,52 @@ function getUserProjects() {
           console.log("error", JSON.stringify(error));
           chrome.storage.local.remove("token", () => {
             console.log("Token removed");
-            chrome.tabs.create({
-              url: chrome.runtime.getURL("loginscreen.html"),
-            });
           });
           reject(error);
         });
     });
   });
 }
+
+chrome.action.onClicked.addListener(async (tab) => {
+  const existingContexts = await chrome.runtime.getContexts({});
+  let recording = false;
+
+  const offscreenDocument = existingContexts.find(
+    (c) => c.contextType === "OFFSCREEN_DOCUMENT"
+  );
+
+  // If an offscreen document is not already open, create one.
+  if (!offscreenDocument) {
+    // Create an offscreen document.
+    chrome.offscreen.createDocument({
+      url: "offscreen.html",
+      reasons: ["USER_MEDIA" as chrome.offscreen.Reason],
+      justification: "Recording from chrome.tabCapture API",
+    });
+  }
+
+  if (recording) {
+    chrome.runtime.sendMessage({
+      type: "stop-recording",
+      target: "offscreen",
+    });
+    chrome.action.setIcon({ path: "icons/not-recording.png" });
+    return;
+  }
+
+  // Get a MediaStream for the active tab.
+  chrome.tabCapture.getMediaStreamId(
+    {
+      targetTabId: tab.id,
+    },
+    (streamId) => {
+      // Send the stream ID to the offscreen document to start recording.
+      chrome.runtime.sendMessage({
+        type: "start-recording",
+        target: "offscreen",
+        data: streamId,
+      });
+    }
+  );
+});

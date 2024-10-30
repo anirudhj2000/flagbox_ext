@@ -101,6 +101,14 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     }
   }
 
+  if (message.type == "startRecording") {
+    startRecording(message.data);
+  }
+
+  if (message.type == "stopRecording") {
+    stopRecording();
+  }
+
   return true;
 });
 
@@ -111,20 +119,20 @@ const removeIframe = () => {
   }
 };
 
-window.addEventListener("message", (event) => {
-  if (event.data.type === "start_recording") {
-    startRecording();
-  } else if (event.data.type === "stop_recording") {
-    stopRecording();
-  }
-});
+// window.addEventListener("message", (event) => {
+//   if (event.data.type === "start_recording") {
+//     startRecording();
+//   } else if (event.data.type === "stop_recording") {
+//     stopRecording();
+//   }
+// });
 
-let mediaRecorder: any = null;
-let recordedChunks: Blob[] = [];
+// let mediaRecorder: any = null;
+// let recordedChunks: Blob[] = [];
 
-const startRecording = async () => {
+const startRecording = async (streamId: string) => {
   console.log("Start recording");
-  const stream = await captureScreen();
+  const stream = await captureScreen(streamId);
   if (stream) {
     mediaRecorder = new MediaRecorder(stream);
     mediaRecorder.ondataavailable = handleDataAvailable;
@@ -137,6 +145,7 @@ const stopRecording = () => {
   if (mediaRecorder) {
     console.log("Stop recording 1");
     mediaRecorder.stop();
+    removeIframe();
   }
 };
 
@@ -164,7 +173,9 @@ function downloadRecording(): void {
   URL.revokeObjectURL(url); // Clean up
 }
 
-const captureScreen = async (): Promise<MediaStream | undefined> => {
+const captureScreen = async (
+  streamId: string
+): Promise<MediaStream | undefined> => {
   const displayMediaOptions: any = {
     video: {
       displaySurface: "browser",
