@@ -39,6 +39,7 @@
     "http://localhost/*",
     "tabCapture",
     "downloads",
-    "tabCapture"
+    "tabCapture",
+    "offscreen"
   ]
 }

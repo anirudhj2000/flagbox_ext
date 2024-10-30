@@ -4,7 +4,7 @@ const path = require("path");
 const tailwindcss = require("tailwindcss");
 const autoprefixer = require("autoprefixer");
 
-let htmlPageNames = ["screenshotcomponent", "loginscreen", "videocomponent"];
+let htmlPageNames = ["screenshotcomponent", "videocomponent", "offscreen"];
 let multipleHtmlPlugins = htmlPageNames.map((name) => {
   return new HtmlWebpackPlugin({
     template: `./src/${name}/${name}.html`, // relative path to the HTML files
@@ -22,7 +22,7 @@ module.exports = {
     react: "./src/react/index.tsx",
     screenshotcomponent: "./src/screenshotcomponent/screenshotcomponent.tsx",
     videocomponent: "./src/videocomponent/videocomponent.tsx",
-    loginscreen: "./src/loginscreen/loginscreen.tsx",
+    offscreen: "./src/offscreen/offscreen.tsx",
   },
   output: {
     path: path.resolve(__dirname, "dist"),
@@ -33,17 +33,14 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: "./src/index.html",
       filename: "index.html",
-      chunks: ["contentScript", "background", "react", "loginscreen"],
+      chunks: ["contentScript", "background", "react"],
     }),
 
     new CopyPlugin({
       patterns: [
         { from: path.resolve("manifest.json"), to: path.resolve("dist") },
         { from: path.resolve("src", "index.css"), to: path.resolve("dist") },
-        {
-          from: path.resolve("src", "loginscreen", "loginscreen.css"),
-          to: path.resolve("dist"),
-        },
+
         // {
         //   from: path.resolve(
         //     "src",
