@@ -101,13 +101,9 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     }
   }
 
-  if (message.type == "startRecording") {
-    startRecording(message.data);
-  }
-
-  if (message.type == "stopRecording") {
-    stopRecording();
-  }
+  // if (message.type == "record_video") {
+  //   startRecording(message.data);
+  // }
 
   return true;
 });
@@ -127,90 +123,86 @@ const removeIframe = () => {
 //   }
 // });
 
-// let mediaRecorder: any = null;
-// let recordedChunks: Blob[] = [];
+// const startRecording = async (streamId: string) => {
+//   console.log("Start recording");
+//   const stream = await captureScreen(streamId);
+//   if (stream) {
+//     mediaRecorder = new MediaRecorder(stream);
+//     mediaRecorder.ondataavailable = handleDataAvailable;
+//     mediaRecorder.start();
+//   }
+// };
 
-const startRecording = async (streamId: string) => {
-  console.log("Start recording");
-  const stream = await captureScreen(streamId);
-  if (stream) {
-    mediaRecorder = new MediaRecorder(stream);
-    mediaRecorder.ondataavailable = handleDataAvailable;
-    mediaRecorder.start();
-  }
-};
+// const stopRecording = () => {
+//   console.log("Stop recording");
+//   if (mediaRecorder) {
+//     console.log("Stop recording 1");
+//     mediaRecorder.stop();
+//   }
+// };
 
-const stopRecording = () => {
-  console.log("Stop recording");
-  if (mediaRecorder) {
-    console.log("Stop recording 1");
-    mediaRecorder.stop();
-    removeIframe();
-  }
-};
+// function handleDataAvailable(event: BlobEvent): void {
+//   console.log("Data available", event);
+//   if (event.data.size > 0) {
+//     recordedChunks.push(event.data);
+//     downloadRecording();
+//   }
+// }
 
-function handleDataAvailable(event: BlobEvent): void {
-  console.log("Data available", event);
-  if (event.data.size > 0) {
-    recordedChunks.push(event.data);
-    downloadRecording();
-  }
-}
+// function downloadRecording(): void {
+//   console.log("Download recording");
+//   const blob = new Blob(recordedChunks, {
+//     type: "video/webm",
+//   });
 
-function downloadRecording(): void {
-  console.log("Download recording");
-  const blob = new Blob(recordedChunks, {
-    type: "video/webm",
-  });
+//   const url = URL.createObjectURL(blob);
+//   const a = document.createElement("a");
+//   a.href = url;
+//   a.download = "screen-recording.webm";
+//   document.body.appendChild(a);
+//   a.click();
+//   document.body.removeChild(a);
+//   URL.revokeObjectURL(url); // Clean up
+// }
 
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "screen-recording.webm";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url); // Clean up
-}
+// const captureScreen = async (
+//   streamId: string
+// ): Promise<MediaStream | undefined> => {
+//   const displayMediaOptions: any = {
+//     video: {
+//       displaySurface: "browser",
+//     },
+//     audio: {
+//       echoCancellation: true,
+//       noiseSuppression: true,
+//       sampleRate: 44100,
+//     },
+//     preferCurrentTab: true,
+//     selfBrowserSurface: "exclude",
+//     systemAudio: "include",
+//     surfaceSwitching: "include",
+//     monitorTypeSurfaces: "include",
+//   };
 
-const captureScreen = async (
-  streamId: string
-): Promise<MediaStream | undefined> => {
-  const displayMediaOptions: any = {
-    video: {
-      displaySurface: "browser",
-    },
-    audio: {
-      echoCancellation: true,
-      noiseSuppression: true,
-      sampleRate: 44100,
-    },
-    preferCurrentTab: true,
-    selfBrowserSurface: "exclude",
-    systemAudio: "include",
-    surfaceSwitching: "include",
-    monitorTypeSurfaces: "include",
-  };
+//   return new Promise((resolve, reject) => {
+//     console.log("Capturing screen");
 
-  return new Promise((resolve, reject) => {
-    console.log("Capturing screen");
-
-    navigator.mediaDevices
-      .getDisplayMedia({
-        video: true,
-        audio: true,
-      })
-      .then((stream) => {
-        console.log("Capturing stream", stream);
-        if (stream) {
-          resolve(stream);
-        } else {
-          reject(new Error("Could not capture stream"));
-        }
-      })
-      .catch((error) => {
-        console.error("Error capturing screen", error);
-        reject(error);
-      });
-  });
-};
+//     navigator.mediaDevices
+//       .getDisplayMedia({
+//         video: true,
+//         audio: true,
+//       })
+//       .then((stream) => {
+//         console.log("Capturing stream", stream);
+//         if (stream) {
+//           resolve(stream);
+//         } else {
+//           reject(new Error("Could not capture stream"));
+//         }
+//       })
+//       .catch((error) => {
+//         console.error("Error capturing screen", error);
+//         reject(error);
+//       });
+//   });
+// };

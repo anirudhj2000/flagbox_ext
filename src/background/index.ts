@@ -26,7 +26,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         sendResponse({ response: dataUrl });
       }
     );
-  } else if (message.command == "startRecording") {
+  } else if (message.command == "start_recording") {
     console.log("startRecording");
 
     const existingContexts = await chrome.runtime.getContexts({});
@@ -47,62 +47,29 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
       });
     }
 
-    chrome.runtime.sendMessage({ command: "startRecording" });
-  } else if (message.command == "stopRecording") {
+    chrome.tabCapture.getMediaStreamId(
+      {
+        targetTabId: sender.tab?.id,
+      },
+      (streamId) => {
+        if (streamId) {
+          console.log("Stream ID:", streamId);
+          // Use the stream ID to start recording
+          chrome.runtime.sendMessage({
+            command: "startRecording",
+            tabId: sender.tab?.id,
+            streamId: streamId,
+          });
+        }
+      }
+    );
+  } else if (message.command == "stop_recording") {
     console.log("stopRecording");
 
     chrome.runtime.sendMessage({ command: "stopRecording" });
-  }
-
-  // else if (message.type == "start_recording") {
-  //   if (sender.tab) {
-  //     // chrome.desktopCapture.chooseDesktopMedia(
-  //     //   ["screen", "window", "tab"],
-  //     //   sender.tab,
-  //     //   (streamId) => {
-  //     //     navigator.mediaDevices
-  //     //       .getDisplayMedia({
-  //     //         video: true,
-  //     //         audio: true,
-  //     //       })
-  //     //       .then((stream) => {
-  //     //         mediaRecorder = new MediaRecorder(stream);
-  //     //         mediaRecorder.ondataavailable = handleDataAvailable;
-  //     //         mediaRecorder.start();
-  //     //       });
-  //     //   }
-  //     // );
-  //     chrome.tabCapture.getMediaStreamId(
-  //       { targetTabId: sender.tab.id },
-  //       (stream) => {
-  //         if (stream) {
-  //           navigator.mediaDevices
-  //             .getDisplayMedia({
-  //               video: true,
-  //               audio: true,
-  //             })
-  //             .then((stream) => {
-  //               mediaRecorder = new MediaRecorder(stream);
-  //               mediaRecorder.ondataavailable = handleDataAvailable;
-  //               mediaRecorder.start();
-  //             });
-  //         }
-  //       }
-  //     );
-  //   }
-  // } else if (message.type == "stop_recording") {
-  //   mediaRecorder.stop();
-  //   mediaRecorder.onstop = () => {
-  //     const blob = new Blob(recordedChunks, { type: "video/webm" });
-  //     const url = URL.createObjectURL(blob);
-  //     chrome.downloads.download({ url, filename: "recorded-video.webm" });
-  //     recordedChunks = [];
-
-  //     if (sender?.tab?.id)
-  //       chrome.tabs.sendMessage(sender?.tab?.id, { type: "remove_iframe" });
-  //   };
-  // }
-  else if (message.type == "upload_document" && message.dataUrl) {
+    if (sender?.tab?.id)
+      chrome.tabs.sendMessage(sender?.tab?.id, { type: "remove_iframe" });
+  } else if (message.type == "upload_document" && message.dataUrl) {
     if (message.includeFullScreen) {
       createFlag(
         message.title,
