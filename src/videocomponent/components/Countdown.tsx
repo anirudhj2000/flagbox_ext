@@ -18,7 +18,7 @@ const Countdown = ({
 
         if (count === 0) {
             clearInterval(interval)
-            onCountEnd && onCountEnd()
+            onCountEnd()
         }
 
         return () => clearInterval(interval)
