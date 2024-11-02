@@ -17,13 +17,14 @@ const App = () => {
   const [showCountdown, setShowCountdown] = useState(true);
 
   const startRecording = () => {
-    chrome.runtime.sendMessage({ command: "startRecording" });
+    console.log("startRecording sent");
+    chrome.runtime.sendMessage({ command: "start_recording" });
     // window.parent.postMessage({ type: "start_recording" }, "*");
     setShowCountdown(false);
   };
 
   const stopRecording = () => {
-    chrome.runtime.sendMessage({ command: "stopRecording" });
+    chrome.runtime.sendMessage({ command: "stop_recording" });
     // window.parent.postMessage({ type: "stop_recording" }, "*");
   };
 

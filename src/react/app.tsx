@@ -9,7 +9,7 @@ import InvalidPage from "./components/invalid";
 export const env = {
   IMAGE_URL: "https://d28exn2y7ee0u1.cloudfront.net/static",
   // LIVE_URL: "https://flagbox-ui.vercel.app",
-  LIVE_URL: "http://localhost:5001",
+  LIVE_URL: "https://localhost:3201",
 };
 
 export const getDomain = (url: string) => {
