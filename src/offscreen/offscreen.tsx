@@ -94,12 +94,19 @@ function stopScreenRecording() {
 
 
 function saveRecording() {
-    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+    const blob = new Blob(recordedChunks, { type: 'video/mp4' });
     const url = URL.createObjectURL(blob);
 
-    const downloadLink = document.createElement('a');
-    downloadLink.href = url;
-    downloadLink.download = 'recording2.webm';
-    downloadLink.click();
-    recordedChunks = [];
+    chrome.runtime.sendMessage({
+        command: 'saveRecording',
+        url: url,
+        blob: blob,
+        recordedChunks: recordedChunks
+    });
+
+    // const downloadLink = document.createElement('a');
+    // downloadLink.href = url;
+    // downloadLink.download = 'recording2.webm';
+    // downloadLink.click();
+    // recordedChunks = [];
 }
