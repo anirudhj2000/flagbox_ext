@@ -10,7 +10,6 @@ let show = false;
 
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   console.log("Content Script Message Listener", message);
-  removeIframe();
 
   if (message.type == "take_screenshot_ext") {
     if (message.subtype === "fullscreen") {
@@ -104,6 +103,23 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   // if (message.type == "record_video") {
   //   startRecording(message.data);
   // }
+
+  if (message.type == "messageToIframe") {
+    const iframe = document.getElementById("flagbox-iframe");
+    console.log("messageToIframe 1", message, iframe);
+    if (iframe) {
+      console.log("messageToIframe 2", message);
+      (iframe as HTMLIFrameElement).contentWindow?.postMessage(
+        {
+          blob: message.blob,
+          recordedChunks: message.recordedChunks,
+          url: message.url,
+          type: message.type,
+        },
+        "*"
+      );
+    }
+  }
 
   return true;
 });

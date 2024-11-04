@@ -65,10 +65,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     );
   } else if (message.command == "stop_recording") {
     console.log("stopRecording");
-
     chrome.runtime.sendMessage({ command: "stopRecording" });
-    if (sender?.tab?.id)
-      chrome.tabs.sendMessage(sender?.tab?.id, { type: "remove_iframe" });
   } else if (message.type == "upload_document" && message.dataUrl) {
     if (message.includeFullScreen) {
       createFlag(
@@ -98,6 +95,22 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   } else if (message.type == "remove_iframe") {
     if (sender?.tab?.id)
       chrome.tabs.sendMessage(sender?.tab?.id, { type: "remove_iframe" });
+  } else if (message.command == "saveRecording") {
+    console.log("saveRecording", message);
+    // chrome.runtime.sendMessage({
+    //   ...message,
+    //   type: "saveRecording",
+    // });
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0].id) {
+        chrome.tabs.sendMessage(tabs[0].id, {
+          type: "messageToIframe",
+          blob: message.blob,
+          recordedChunks: message.recordedChunks,
+          url: message.url,
+        });
+      }
+    });
   }
 
   return true;
