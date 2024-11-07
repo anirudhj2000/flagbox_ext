@@ -9,7 +9,7 @@ let recordedChunks: Blob[] = [];
 const API_URL = "http://localhost:5001/api";
 // const API_URL = "https://flagbox-be.onrender.com/api";
 
-chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log("Taking screenshot message recieved", message, sender);
   if (
     message.type === "take_screenshot" &&
@@ -18,51 +18,57 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     message.width &&
     message.height
   ) {
-    chrome.tabs.captureVisibleTab(
-      //@ts-ignore
-      null,
-      { format: "png" },
-      async (dataUrl) => {
-        sendResponse({ response: dataUrl });
-      }
-    );
+    console.log("Taking screenshot1");
+    if (sender.tab?.windowId) {
+      console.log("Taking screenshot2");
+      chrome.tabs.captureVisibleTab(
+        sender.tab?.windowId,
+        { format: "png" },
+        async (dataUrl) => {
+          console.log("dataUrl background", dataUrl);
+          sendResponse({ response: dataUrl });
+        }
+      );
+    }
   } else if (message.command == "start_recording") {
     console.log("startRecording");
 
-    const existingContexts = await chrome.runtime.getContexts({});
-    let recording = false;
+    chrome.runtime.getContexts({}).then((existingContexts) => {
+      let recording = false;
 
-    const offscreenDocument = existingContexts.find(
-      (c) => c.contextType === "OFFSCREEN_DOCUMENT"
-    );
+      const offscreenDocument = existingContexts.find(
+        (c) => c.contextType === "OFFSCREEN_DOCUMENT"
+      );
 
-    console.log("offscreenDocument", offscreenDocument);
+      console.log("offscreenDocument", offscreenDocument);
 
-    // Ensure the offscreen document exists
-    if (!offscreenDocument) {
-      await chrome.offscreen.createDocument({
-        url: "offscreen.html",
-        reasons: ["USER_MEDIA" as chrome.offscreen.Reason],
-        justification: "Screen recording in the background",
-      });
-    }
-
-    chrome.tabCapture.getMediaStreamId(
-      {
-        targetTabId: sender.tab?.id,
-      },
-      (streamId) => {
-        if (streamId) {
-          console.log("Stream ID:", streamId);
-          // Use the stream ID to start recording
-          chrome.runtime.sendMessage({
-            command: "startRecording",
-            tabId: sender.tab?.id,
-            streamId: streamId,
+      if (!offscreenDocument) {
+        chrome.offscreen
+          .createDocument({
+            url: "offscreen.html",
+            reasons: ["USER_MEDIA" as chrome.offscreen.Reason],
+            justification: "Screen recording in the background",
+          })
+          .then((document) => {
+            chrome.tabCapture.getMediaStreamId(
+              {
+                targetTabId: sender.tab?.id,
+              },
+              (streamId) => {
+                if (streamId) {
+                  console.log("Stream ID:", streamId);
+                  // Use the stream ID to start recording
+                  chrome.runtime.sendMessage({
+                    command: "startRecording",
+                    tabId: sender.tab?.id,
+                    streamId: streamId,
+                  });
+                }
+              }
+            );
           });
-        }
       }
-    );
+    });
   } else if (message.command == "stop_recording") {
     console.log("stopRecording");
     chrome.runtime.sendMessage({ command: "stopRecording" });
