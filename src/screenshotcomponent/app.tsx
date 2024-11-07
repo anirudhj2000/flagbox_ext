@@ -84,7 +84,7 @@ const App = () => {
         />
       ) : null}
 
-      <p className=" absolute left-0 top-0 text-black text-xl">{type}</p>
+
     </div>
   );
 };

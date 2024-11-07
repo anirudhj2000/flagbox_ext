@@ -44,7 +44,7 @@ const SectionCapture = ({ onCapture }: SectionCaptureInterface) => {
     let startY: any = null;
 
     const startDrawing = (e: MouseEvent) => {
-      console.log("startDrawing", e, sectionRef.current);
+      console.log("startDrawing", e.shiftKey, sectionRef.current);
       if (sectionRef.current && e.shiftKey) {
         sectionRef.current.style.left = `${e.clientX}px`;
         sectionRef.current.style.top = `${e.clientY}px`;
@@ -57,12 +57,10 @@ const SectionCapture = ({ onCapture }: SectionCaptureInterface) => {
 
     const updateSection = (e: MouseEvent) => {
       if (sectionRef.current && e.shiftKey && startX && startY) {
-        sectionRef.current.style.width = `${
-          e.clientX - sectionRef.current.offsetLeft
-        }px`;
-        sectionRef.current.style.height = `${
-          e.clientY - sectionRef.current.offsetTop
-        }px`;
+        sectionRef.current.style.width = `${e.clientX - sectionRef.current.offsetLeft
+          }px`;
+        sectionRef.current.style.height = `${e.clientY - sectionRef.current.offsetTop
+          }px`;
       }
     };
 
@@ -82,7 +80,8 @@ const SectionCapture = ({ onCapture }: SectionCaptureInterface) => {
 
         console.log("Screenshot being taken", x, y, width, height);
         resetSection();
-        takeScreenShot(x, y, width, height);
+        if (height > 16 && width > 16)
+          takeScreenShot(x, y, width, height);
       }
 
       setLoading(true);
@@ -99,7 +98,7 @@ const SectionCapture = ({ onCapture }: SectionCaptureInterface) => {
     };
   }, []);
 
-  const takeScreenShot = async (
+  const takeScreenShot = (
     x: number,
     y: number,
     width: number,
@@ -152,6 +151,8 @@ const SectionCapture = ({ onCapture }: SectionCaptureInterface) => {
           Shift is pressed
         </p>
       )}
+
+
     </div>
   );
 };
