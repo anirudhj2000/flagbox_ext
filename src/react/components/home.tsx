@@ -34,24 +34,17 @@ const recordVideo = async () => {
 
 const sections = [
   {
-    name: "Only FullScreen",
-    value: "fullscreen",
-  },
-  {
-    name: "Single Section Capture",
+    name: "Capture Section",
     value: "single_section",
   },
   {
-    name: "Multiple Section Capture",
-    value: "multiple_section",
+    name: "Fullscreen",
+    value: "fullscreen",
   },
 ];
 
 const Home = () => {
-  const [selectedSection, setSelectedSection] = useState({
-    name: "Only FullScreen",
-    value: "fullscreen",
-  });
+  const [selectedSection, setSelectedSection] = useState(sections[0]);
   const [showSection, setShowSection] = useState(false);
   const ref = useRef<HTMLButtonElement>(null);
 
