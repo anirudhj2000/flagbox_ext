@@ -17,14 +17,14 @@ const App = () => {
   const [type, setType] = useState("");
   const [showCountdown, setShowCountdown] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
-  const [dataUrl, setDataUrl] = useState("");
+  const [dataUrl, setDataUrl] = useState<Blob>();
 
   useEffect(() => {
     window.addEventListener("message", (event) => {
       console.log("message received", event);
       if (event.data.type == "messageToIframe") {
         setType(event.data.type);
-        setDataUrl(event.data.url);
+        setDataUrl(event.data.blob);
         setShowPreview(true);
       }
     })
@@ -57,8 +57,8 @@ const App = () => {
           <p className=" text-xl text-red-400 font-bold">Recording will start in</p>
           <Countdown initialCount={2} onCountEnd={startRecording} />
         </div> :
-        showPreview ?
-          <PreviewVideo dataUrl={dataUrl} handleClose={handleClose} />
+        showPreview && dataUrl ?
+          <PreviewVideo blob={dataUrl} handleClose={handleClose} />
           :
           <button onClick={stopRecording} className=" px-4 py-2 rounded-full flex flex-row items-center bg-red-500 text-white">
             <FaStopCircle />

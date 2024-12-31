@@ -1,4 +1,4 @@
 export interface PreviewVideoProps {
-    dataUrl: string
+    blob: Blob
     handleClose: () => void
 }

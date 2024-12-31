@@ -9,7 +9,7 @@ import Spinner from "../utils/spinner";
 const API_URL = "http://localhost:5001/api";
 
 const PreviewVideo = ({
-    dataUrl,
+    blob,
     handleClose,
 }: PreviewVideoProps) => {
     const [loading, setLoading] = useState(true);
@@ -85,7 +85,7 @@ const PreviewVideo = ({
 
     useEffect(() => {
         setLoading(false);
-    }, [dataUrl]);
+    }, [blob]);
 
     if (loading) {
         return (
@@ -110,9 +110,9 @@ const PreviewVideo = ({
                 <div className=" w-full flex flex-row justify-between items-center h-[80vh]">
                     <div className=" flex flex-col items-center justify-center h-full w-8/12 border-r-[1px] border-gray-300">
                         <div className=" h-[80vh] w-full flex flex-col items-center justify-center border-b-[1px] border-gray-300">
-                            {dataUrl.length > 0 ? (
+                            {blob ? (
                                 <Editor
-                                    dataUrl={dataUrl}
+                                    dataUrl={blob}
                                     onSave={handleSave}
                                 />
                             ) : null}

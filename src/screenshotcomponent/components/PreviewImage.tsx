@@ -24,7 +24,6 @@ const PreviewImage = ({
   const [activeWorkspace, setActiveWorkspace] = useState("");
   const [includeFullscreen, setIncludeFullscreen] = useState(false);
 
-
   const {
     register,
     handleSubmit,
